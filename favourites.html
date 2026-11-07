@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MnakaFindMe | Favourites</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: #f3f6fb;
+  color: #172033;
+  font-family: Arial, sans-serif;
+}
+nav {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 14px;
+  background: #141c30;
+}
+nav a {
+  padding: 10px 14px;
+  border-radius: 9px;
+  background: #0b1020;
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+nav a.active { background: #86efac; color: #0b1020; }
+main { max-width: 1000px; margin: auto; padding: 20px; }
+.intro, .product {
+  background: white;
+  padding: 18px;
+  margin: 14px 0;
+  border-radius: 12px;
+  box-shadow: 0 3px 12px #15274612;
+}
+.product {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+}
+.product img {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+}
+.info { flex: 1; min-width: 180px; }
+button {
+  padding: 10px 13px;
+  margin: 4px;
+  border: 0;
+  border-radius: 8px;
+  background: #e5edff;
+  cursor: pointer;
+  font-weight: bold;
+}
+.remove { background: #ffe4e6; color: #9f1239; }
+.muted { color: #64748b; }
+</style>
+</head>
+<body>
+<nav aria-label="Main navigation">
+  <a href="/">Home</a>
+  <a href="/photoadd.html">AddMe</a>
+  <a href="/sell.html">SellMe</a>
+  <a href="/buyme.html">BuyMe</a>
+  <a class="active" href="/favourites.html">⭐ Favourites</a>
+</nav>
+<main>
+  <section class="intro">
+    <h1>⭐ My Favourites</h1>
+    <p>Save products here when you might want to buy them later.
+       Favourites are private to this browser and separate from Likes and MyCart.</p>
+    <p id="summary" aria-live="polite">Loading favourites...</p>
+    <p><a href="/buyme.html">Browse products in BuyMe →</a></p>
+  </section>
+  <section id="products"></section>
+</main>
+<script>
+(() => {
+  "use strict";
+
+  const FAV_KEY = "findme_favourites_v1";
+  const CATALOG_KEY = "findme_sell_products_v1";
+  const box = document.getElementById("products");
+  const summary = document.getElementById("summary");
+
+  function getList(key) {
+    try {
+      const value = JSON.parse(localStorage.getItem(key) || "[]");
+      return Array.isArray(value) ? value : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function identity(p) {
+    return JSON.stringify([
+      p.id ?? "", p.name || "", p.seller || "",
+      p.price ?? "", p.buyUrl || "", p.image || ""
+    ]);
+  }
+
+  function saveFavourites(items) {
+    try {
+      localStorage.setItem(FAV_KEY, JSON.stringify(items));
+      return true;
+    } catch {
+      alert("Could not save Favourites in this browser.");
+      return false;
+    }
+  }
+
+  function render() {
+    box.replaceChildren();
+    const favourites = getList(FAV_KEY);
+    const catalogue = getList(CATALOG_KEY);
+
+    summary.textContent = favourites.length +
+      (favourites.length === 1 ? " saved product" : " saved products");
+
+    if (!favourites.length) {
+      const empty = document.createElement("p");
+      empty.className = "product";
+      empty.textContent =
+        "You have no favourites yet. Visit BuyMe and save products you may want to buy later.";
+      box.appendChild(empty);
+      return;
+    }
+
+    for (const product of favourites) {
+      const card = document.createElement("article");
+      card.className = "product";
+
+      if (product.image &&
+          (String(product.image).startsWith("data:image/") ||
+           /^https?:\/\//i.test(String(product.image)))) {
+        const img = document.createElement("img");
+        img.src = product.image;
+        img.alt = product.name || "Product image";
+        img.loading = "lazy";
+        card.appendChild(img);
+      }
+
+      const info = document.createElement("div");
+      info.className = "info";
+
+      const title = document.createElement("h2");
+      title.textContent = product.name || "Unnamed product";
+      info.appendChild(title);
+
+      if (product.description) {
+        const desc = document.createElement("p");
+        desc.textContent = product.description;
+        info.appendChild(desc);
+      }
+
+      if (product.price != null && product.price !== "") {
+        const price = document.createElement("p");
+        price.textContent = "Price: " + product.price;
+        info.appendChild(price);
+      }
+
+      if (product.seller) {
+        const seller = document.createElement("p");
+        seller.textContent = "Seller: " + product.seller;
+        info.appendChild(seller);
+      }
+
+      const remove = document.createElement("button");
+      remove.className = "remove";
+      remove.textContent = "Remove from Favourites";
+      remove.addEventListener("click", () => {
+        saveFavourites(getList(FAV_KEY).filter(
+          item => identity(item) !== identity(product)
+        ));
+        render();
+      });
+      info.appendChild(remove);
+
+      const addCart = document.createElement("button");
+      addCart.textContent = "🛒 Add to MyCart";
+      addCart.addEventListener("click", () => {
+        const selectedKey = "findme_buyme_selection_v1";
+        const selected = getList(selectedKey);
+        const same = item =>
+          item.name === product.name &&
+          item.seller === product.seller &&
+          item.price === product.price &&
+          item.buyUrl === product.buyUrl &&
+          item.image === product.image;
+
+        if (!selected.some(same)) selected.push(product);
+
+        try {
+          localStorage.setItem(selectedKey, JSON.stringify(selected));
+          alert("Product added to MyCart.");
+        } catch {
+          alert("Could not add this product to MyCart.");
+        }
+      });
+      info.appendChild(addCart);
+
+      const currentListing = catalogue.find(
+        item => item.name === product.name &&
+                item.seller === product.seller
+      );
+
+      if (!currentListing) {
+        const note = document.createElement("p");
+        note.className = "muted";
+        note.textContent =
+          "This product may no longer be in the current catalogue.";
+        info.appendChild(note);
+      }
+
+      card.appendChild(info);
+      box.appendChild(card);
+    }
+  }
+
+  window.addEventListener("storage", event => {
+    if (event.key === FAV_KEY || event.key === CATALOG_KEY ||
+        event.key === null) render();
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

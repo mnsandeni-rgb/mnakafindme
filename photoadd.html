@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0b1020">
+<title>MnakaFindMe | AddMe — Add Products</title>
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #0b1020;
+  --panel: #141c30;
+  --border: #293650;
+  --text: #f1f5f9;
+  --muted: #a0aec0;
+  --green: #86efac;
+  --blue: #60a5fa;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, sans-serif;
+  line-height: 1.5;
+}
+header {
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  padding: 16px;
+}
+header, main, footer { padding-left: 16px; padding-right: 16px; }
+header nav, main {
+  max-width: 850px;
+  margin: auto;
+}
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+a { color: var(--blue); }
+main { padding-top: 22px; padding-bottom: 30px; }
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 18px;
+}
+h1, h2 { color: var(--blue); }
+label { display: block; font-weight: 600; margin: 12px 0 6px; }
+input, textarea, select, button {
+  width: 100%;
+  padding: 12px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+textarea { min-height: 90px; resize: vertical; }
+button {
+  border: 0;
+  background: var(--green);
+  color: #0b1020;
+  font-weight: bold;
+  cursor: pointer;
+}
+button:disabled { opacity: .6; cursor: wait; }
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.preview {
+  display: block;
+  max-width: 100%;
+  width: 100%;
+  max-height: 320px;
+  object-fit: contain;
+  margin: 14px auto;
+  border-radius: 10px;
+  background: var(--bg);
+}
+.muted { color: var(--muted); font-size: .92rem; }
+#status { overflow-wrap: anywhere; }
+footer { text-align: center; padding-top: 20px; padding-bottom: 20px; color: var(--muted); }
+@media (max-width: 560px) {
+  .grid { grid-template-columns: 1fr; }
+  .panel { padding: 14px; }
+}
+
+/* findMe stock availability indicators */
+.stock-badge {
+  display: inline-block;
+  width: fit-content;
+  padding: 5px 10px;
+  margin: 8px 0;
+  border-radius: 7px;
+  font-size: .9rem;
+  font-weight: 700;
+}
+.stock-in {
+  color: #86efac;
+  background: #123524;
+  border: 1px solid #247447;
+}
+.stock-low {
+  color: #fcd34d;
+  background: #422d0b;
+  border: 1px solid #92701d;
+}
+.stock-out {
+  color: #fca5a5;
+  background: #451b25;
+  border: 1px solid #9f3548;
+}
+.stock-unknown {
+  color: #cbd5e1;
+  background: #293650;
+}
+.stock-action {
+  margin-bottom: 8px;
+}
+
+</style>
+</head>
+<body>
+
+<style id="findme-three-page-navigation">
+#findme-main-nav {
+  background: #141c30;
+  border-bottom: 1px solid #293650;
+  padding: 14px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+#findme-main-nav a {
+  display: inline-block;
+  padding: 10px 15px;
+  border-radius: 9px;
+  background: #0b1020;
+  color: #f1f5f9;
+  border: 1px solid #293650;
+  text-decoration: none;
+  font-weight: 700;
+}
+#findme-main-nav a.active {
+  background: #86efac;
+  color: #0b1020;
+}
+</style>
+<nav id="findme-main-nav" aria-label="Main navigation">
+  <a href="/photoadd.html" data-page="photoadd.html">📸 AddMe</a>
+  <a href="/sell.html" data-page="sell.html">🏪 SellMe</a>
+  <a href="/buyme.html" data-page="buyme.html">🛒 BuyMe</a>
+</nav>
+<script>
+(() => {
+  const current = location.pathname.split("/").pop() || "index.html";
+  document.querySelectorAll("#findme-main-nav a").forEach(link => {
+    if (link.dataset.page === current) {
+      link.classList.add("active");
+      link.setAttribute("aria-current", "page");
+    }
+  });
+})();
+</script>
+
+<header>
+  <nav>
+    <strong>📸 findMe — Add by Picture</strong>
+    <a href="/buyme.html">Back to BuyMe</a>
+  </nav>
+</header>
+
+<main>
+  <section class="panel">
+    <h1>📦 AddMe — Add a Product</h1>
+    <p>Add products using their names and details. You can take a picture, choose one from your gallery or folders, or continue without a picture.</p>
+
+    <form id="photoForm">
+      <label for="image">Product picture *</label>
+      <input id="image" type="file" accept="image/*">
+      <p class="muted">Choose a picture from your gallery or computer folders. A picture is optional.</p>
+      <button type="button" id="takePicture">📷 Take a Picture</button>
+      <input id="cameraImage" type="file" accept="image/*" capture="environment" hidden>
+
+      <p class="muted">On a phone, this may offer the camera. Image limit: 1 MB.</p>
+      <img id="preview" class="preview" alt="Product picture preview" hidden>
+
+      <label for="name">Product name *</label>
+      <input id="name" maxlength="100" required placeholder="Enter or confirm the product name">
+
+      <label for="description">Product description (optional)</label>
+      <textarea id="description" maxlength="2000" placeholder="Add details if known. You can leave this blank."></textarea>
+
+      <div class="grid">
+        <div>
+          <label for="price">Price *</label>
+          <input id="price" type="number" min="0.01" max="100000000" step="0.01" required placeholder="Enter price">
+        </div>
+        <div>
+          <label for="stock">Stock quantity *</label>
+          <input id="stock" type="number" min="0" max="1000000" step="1" value="1" required>
+          <small class="muted">Enter 0 if the product is sold out. Quantities of 1–5 show Low Stock.</small>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div>
+          <label for="category">Category</label>
+          <select id="category">
+            <option>Other</option>
+            <option>Electronics</option>
+            <option>Computers</option>
+            <option>Phones</option>
+            <option>Clothing</option>
+            <option>Home</option>
+            <option>Beauty</option>
+            <option>Sports</option>
+            <option>Food</option>
+            <option>Accessories</option>
+          </select>
+        </div>
+        <div>
+          <label for="condition">Condition</label>
+          <select id="condition">
+            <option>New</option>
+            <option>Used - Like New</option>
+            <option>Used - Good</option>
+            <option>Refurbished</option>
+          </select>
+        </div>
+      </div>
+
+      <label for="quality">Physical quality</label>
+      <select id="quality">
+        <option>Not Assessed</option>
+        <option>Excellent</option>
+        <option>Very Good</option>
+        <option>Good</option>
+        <option>Fair</option>
+        <option>Poor</option>
+      </select>
+
+      <label for="qualityDetails">Quality details (optional)</label>
+      <textarea id="qualityDetails" maxlength="1500" placeholder="Mention wear, scratches, damage or other known details."></textarea>
+
+      <div class="grid">
+        <div>
+          <label for="seller">Seller or shop name</label>
+          <input id="seller" maxlength="100" placeholder="Shop name (optional)">
+        </div>
+        <div>
+          <label for="location">Where can buyers find it? *</label>
+          <input id="location" maxlength="200" required placeholder="Town, shop or collection location">
+        </div>
+      </div>
+
+      <label for="buyUrl">Purchase link (optional)</label>
+      <input id="buyUrl" type="url" maxlength="1000" placeholder="https://example.com/product">
+
+      <p id="status" role="status" aria-live="polite"></p>
+      <button id="save" type="submit">💾 Save Product to BuyMe</button>
+    </form>
+  </section>
+</main>
+
+<footer>findMe · Add products with pictures</footer>
+
+<script>
+(() => {
+  "use strict";
+
+  const KEY = "findme_sell_products_v1";
+  const $ = id => document.getElementById(id);
+  const form = $("photoForm");
+  const imageInput = $("image");
+  const preview = $("preview");
+  const status = $("status");
+  let imageData = "";
+
+  const cameraInput = $("cameraImage");
+
+  $("takePicture").addEventListener("click", () => {
+    cameraInput.click();
+  });
+
+  function handleImageChange(event) {
+    const file = event.target.files[0];
+
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      status.textContent = "Please choose a valid image file.";
+      event.target.value = "";
+      return;
+    }
+
+    if (file.size > 1024 * 1024) {
+      status.textContent =
+        "The picture must be 1 MB or smaller. Choose a smaller image.";
+      event.target.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      imageData = String(reader.result || "");
+      preview.src = imageData;
+      preview.hidden = false;
+      status.textContent = "Picture ready. You can now save the product.";
+    };
+
+    reader.onerror = () => {
+      status.textContent = "Could not read this picture.";
+    };
+
+    reader.readAsDataURL(file);
+  }
+
+  imageInput.addEventListener("change", handleImageChange);
+  cameraInput.addEventListener("change", handleImageChange);
+
+  form.addEventListener("submit", event => {
+    event.preventDefault();
+    status.textContent = "";
+
+    const name = $("name").value.trim();
+    const description = $("description").value.trim();
+    const price = Number($("price").value);
+    const stock = Number($("stock").value);
+    const location = $("location").value.trim();
+    const buyUrl = $("buyUrl").value.trim();
+
+    if (!name) {
+      status.textContent = "Product name is required.";
+      $("name").focus();
+      return;
+    }
+
+    if (!Number.isFinite(price) || price <= 0 ||
+        !Number.isFinite(stock) || stock < 0 ||
+        !Number.isInteger(stock) || !location) {
+      status.textContent = "Enter a valid price, whole-number stock quantity and location.";
+      return;
+    }
+
+    if (buyUrl) {
+      try {
+        const url = new URL(buyUrl);
+        if (!["https:", "http:"].includes(url.protocol)) throw new Error();
+      } catch {
+        status.textContent = "Purchase link must begin with https:// or http://.";
+        return;
+      }
+    }
+
+    let products;
+    try {
+      products = JSON.parse(localStorage.getItem(KEY) || "[]");
+      if (!Array.isArray(products)) products = [];
+    } catch {
+      status.textContent = "Could not read the product catalogue.";
+      return;
+    }
+
+    const product = {
+      id: (crypto.randomUUID ? crypto.randomUUID() :
+        String(Date.now()) + Math.random().toString(16).slice(2)),
+      name,
+      description,
+      price,
+      stock,
+      category: $("category").value,
+      condition: $("condition").value,
+      image: imageData,
+      quality: $("quality").value,
+      qualityDetails: $("qualityDetails").value.trim(),
+      seller: $("seller").value.trim(),
+      location,
+      buyUrl,
+      updatedAt: new Date().toISOString()
+    };
+
+    products.unshift(product);
+
+    try {
+      localStorage.setItem(KEY, JSON.stringify(products));
+      status.textContent = "Product saved! Opening BuyMe...";
+      $("save").disabled = true;
+      setTimeout(() => {
+        window.location.href = "/buyme.html";
+      }, 800);
+    } catch {
+      status.textContent = "Could not save the product. Browser storage may be full. Try a smaller picture or remove unused listings.";
+    }
+  });
+})();
+</script>
+</body>
+</html>

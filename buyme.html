@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0b1020">
+<title>findMe | BuyMe — Browse Products</title>
+
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #0b1020;
+  --panel: #141c30;
+  --border: #293650;
+  --text: #f1f5f9;
+  --muted: #a0aec0;
+  --blue: #60a5fa;
+  --green: #86efac;
+  --yellow: #fcd34d;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, sans-serif;
+  line-height: 1.6;
+}
+
+header {
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  padding: 16px;
+}
+
+nav, main {
+  max-width: 1100px;
+  margin: auto;
+}
+
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+nav a {
+  color: var(--blue);
+  margin-right: 12px;
+  text-decoration: none;
+}
+
+main { padding: 20px; }
+
+h1, h2 { color: var(--blue); }
+
+.hero, .toolbar, .product {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 18px;
+}
+
+.hero {
+  background: linear-gradient(135deg, #141c30, #182b43);
+}
+
+.toolbar {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 12px;
+}
+
+input, select, button {
+  width: 100%;
+  padding: 12px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+
+button, .buy-button {
+  cursor: pointer;
+  background: var(--green);
+  color: #0b1020;
+  border: none;
+  border-radius: 9px;
+  padding: 12px 16px;
+  font-weight: bold;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+}
+
+.buy-button:hover, button:hover { filter: brightness(1.08); }
+
+.product {
+  display: grid;
+  grid-template-columns: minmax(130px, 240px) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.product img {
+  width: 100%;
+  height: 210px;
+  object-fit: contain;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.product-info { min-width: 0; overflow-wrap: anywhere; }
+
+.product-info h2 {
+  margin-top: 6px;
+  margin-bottom: 8px;
+}
+
+.badge {
+  display: inline-block;
+  background: #24334b;
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 0.85rem;
+}
+
+.price {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: var(--green);
+}
+
+.muted { color: var(--muted); }
+
+.empty {
+  padding: 30px;
+  text-align: center;
+  color: var(--muted);
+}
+
+#status { color: var(--muted); }
+
+footer {
+  text-align: center;
+  color: var(--muted);
+  padding: 25px;
+}
+
+@media (max-width: 600px) {
+  main { padding: 12px; }
+  .toolbar { grid-template-columns: 1fr; }
+  .product {
+    grid-template-columns: minmax(100px, 35%) minmax(0, 1fr);
+    gap: 12px;
+    padding: 12px;
+  }
+  .product img { height: 150px; }
+}
+
+/* findMe stock availability indicators */
+.stock-badge {
+  display: inline-block;
+  width: fit-content;
+  padding: 5px 10px;
+  margin: 8px 0;
+  border-radius: 7px;
+  font-size: .9rem;
+  font-weight: 700;
+}
+.stock-in {
+  color: #86efac;
+  background: #123524;
+  border: 1px solid #247447;
+}
+.stock-low {
+  color: #fcd34d;
+  background: #422d0b;
+  border: 1px solid #92701d;
+}
+.stock-out {
+  color: #fca5a5;
+  background: #451b25;
+  border: 1px solid #9f3548;
+}
+.stock-unknown {
+  color: #cbd5e1;
+  background: #293650;
+}
+.stock-action {
+  margin-bottom: 8px;
+}
+
+</style>
+<style id="findmeLikesStyles">
+.findme-like-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 8px 0 12px;
+  padding: 9px 13px;
+  border: 1px solid #d7dce5;
+  border-radius: 20px;
+  background: #fff;
+  color: #374151;
+  font-weight: 700;
+  cursor: pointer;
+}
+.findme-like-button.liked {
+  color: #be123c;
+  background: #fff1f2;
+  border-color: #fb7185;
+}
+.findme-like-button:disabled {
+  opacity: .65;
+  cursor: wait;
+}
+</style>
+</head>
+
+<body>
+
+<style id="findme-three-page-navigation">
+#findme-main-nav {
+  background: #141c30;
+  border-bottom: 1px solid #293650;
+  padding: 14px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+#findme-main-nav a {
+  display: inline-block;
+  padding: 10px 15px;
+  border-radius: 9px;
+  background: #0b1020;
+  color: #f1f5f9;
+  border: 1px solid #293650;
+  text-decoration: none;
+  font-weight: 700;
+}
+#findme-main-nav a.active {
+  background: #86efac;
+  color: #0b1020;
+}
+</style>
+<nav id="findme-main-nav" aria-label="Main navigation">
+  <a href="/photoadd.html" data-page="photoadd.html">📸 AddMe</a>
+  <a href="/sell.html" data-page="sell.html">🏪 SellMe</a>
+  <a href="/buyme.html" data-page="buyme.html">🛒 BuyMe</a>
+  <a href="/favourites.html" data-page="favourites.html">⭐ Favourites</a>
+</nav>
+<script>
+(() => {
+  const current = location.pathname.split("/").pop() || "index.html";
+  document.querySelectorAll("#findme-main-nav a").forEach(link => {
+    if (link.dataset.page === current) {
+      link.classList.add("active");
+      link.setAttribute("aria-current", "page");
+    }
+  });
+})();
+</script>
+
+<header>
+  <nav>
+    <h1>🛒 BuyMe</h1>
+    <div>
+      <a href="/">Home</a>
+      <a href="/sell.html">SellMe</a>
+      
+      <a href="/secureme.html">SecureMe</a>
+    </div>
+  </nav>
+</header>
+
+<main>
+  <section class="hero">
+    <h2>Find something you love.</h2>
+    <p>
+      Browse products, compare prices, inspect available product information
+      and find out where to buy.
+    </p>
+    <p class="muted">
+      Check the product condition, seller and purchase details before paying.
+      Product information is supplied by the listing owner and may need
+      independent verification.
+    </p>
+  </section>
+
+  
+    <p style="text-align:center;margin:18px 0">
+      <button type="button" id="openAddMe"
+         style="padding:14px 20px;border:0;border-radius:10px;
+                background:#86efac;color:#0b1020;
+                font-weight:bold;font-size:16px;cursor:pointer">
+        ➕ AddMe
+      </button>
+    </p>
+    
+
+<div id="addMeModal" hidden role="dialog" aria-modal="true"
+     aria-labelledby="addMeTitle"
+     style="position:fixed;inset:0;z-index:9999;background:#0009;
+            padding:18px;overflow:auto;box-sizing:border-box">
+  <section style="max-width:650px;margin:5vh auto;background:white;
+                  color:#172033;border-radius:16px;padding:22px;
+                  box-shadow:0 12px 45px #0004">
+    <div style="display:flex;justify-content:space-between;
+                align-items:center;gap:12px">
+      <h2 id="addMeTitle">➕ AddMe — Find More Products</h2>
+      <button type="button" id="closeAddMe"
+              aria-label="Close AddMe"
+              style="font-size:22px;padding:8px 12px;cursor:pointer">
+        ✕
+      </button>
+    </div>
+
+    <p>Search the product catalogue and select items for your shopping list.</p>
+
+    <input id="addMeSearch" type="search"
+           placeholder="Search products by name, seller or description..."
+           aria-label="Search additional products"
+           style="width:100%;box-sizing:border-box;padding:12px;
+                  border:1px solid #ccd3df;border-radius:9px">
+
+    <p id="addMeSummary" aria-live="polite"></p>
+    <div id="addMeSelected"
+         style="padding:10px;background:#f0f5ff;border-radius:9px;
+                margin-bottom:14px"></div>
+    <div id="addMeProducts"
+         style="display:grid;gap:12px"></div>
+
+    <p style="text-align:right;margin-top:18px">
+      <button type="button" id="doneAddMe"
+              style="padding:12px 18px;border:0;border-radius:9px;
+                     background:#1769ff;color:white;font-weight:bold;
+                     cursor:pointer">
+        Done — Return to BuyMe
+      </button>
+    </p>
+  </section>
+</div>
+\n
+<section style="text-align:center;margin:18px 0">
+  <button type="button" id="myCartButton"
+    style="padding:13px 22px;border:0;border-radius:10px;
+           background:#1769ff;color:white;font-size:16px;
+           font-weight:bold;cursor:pointer">
+    🛒 MyCart (<span id="myCartCount">0</span>)
+  </button>
+</section>
+
+<div id="myCartModal" hidden role="dialog" aria-modal="true"
+  aria-labelledby="myCartTitle"
+  style="position:fixed;inset:0;z-index:10000;background:#0009;
+         padding:18px;overflow:auto;box-sizing:border-box">
+  <section style="max-width:650px;margin:5vh auto;background:white;
+    color:#172033;border-radius:16px;padding:22px;
+    box-shadow:0 12px 45px #0004">
+    <div style="display:flex;justify-content:space-between;
+      align-items:center;gap:12px">
+      <h2 id="myCartTitle">🛒 MyCart</h2>
+      <button type="button" id="closeMyCart"
+        aria-label="Close MyCart"
+        style="font-size:22px;padding:8px 12px;cursor:pointer">✕</button>
+    </div>
+
+    <p id="myCartSummary" aria-live="polite"></p>
+    <div id="myCartItems" style="display:grid;gap:12px"></div>
+
+    <div style="margin-top:20px;padding:15px;background:#f0f5ff;
+      border-radius:10px">
+      <strong id="myCartTotal">Total: 0.00</strong>
+      <p style="font-size:13px">
+        Totals include listed prices only. Delivery fees and final prices
+        must be confirmed with the seller.
+      </p>
+    </div>
+
+    <p style="text-align:right;margin-top:18px">
+      <button type="button" id="clearMyCart"
+        style="padding:11px;border:1px solid #ccd3df;
+               border-radius:8px;cursor:pointer">Clear cart</button>
+      <button type="button" id="doneMyCart"
+        style="padding:11px 16px;border:0;border-radius:8px;
+               background:#1769ff;color:white;font-weight:bold;
+               cursor:pointer">Continue shopping</button>
+    </p>
+  </section>
+</div>
+
+<section class="toolbar">
+    <input id="search" type="search"
+           placeholder="Search products by name or description..."
+           aria-label="Search products">
+
+    <select id="category" aria-label="Filter by category">
+      <option value="">All categories</option>
+    </select>
+  </section>
+
+  <p id="summary" aria-live="polite">Loading products...</p>
+  <p id="status" role="status"></p>
+  <section id="products"></section>
+</main>
+
+<footer>
+  findMe BuyMe · Browse products and find sellers
+</footer>
+
+<script>
+(() => {
+  "use strict";
+
+  const STORAGE_KEY = "findme_sell_products_v1";
+  const $ = id => document.getElementById(id);
+
+  const productsBox = $("products");
+  const summary = $("summary");
+  const status = $("status");
+
+  let products = [];
+  const likeButtons = new Map();
+
+  function likeProductKey(product) {
+    return JSON.stringify([
+      product.id ?? "",
+      product.name || "",
+      product.seller || "",
+      product.price ?? "",
+      product.buyUrl || ""
+    ]);
+  }
+
+  async function refreshLikeButtons() {
+    const entries = [...likeButtons.entries()];
+    if (!entries.length) return;
+
+    try {
+      const response = await fetch("/api/likes/list", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        credentials: "same-origin",
+        body: JSON.stringify({keys: entries.map(([key]) => key)})
+      });
+
+      if (!response.ok) return;
+
+      const data = await response.json();
+
+      for (const [key, entry] of entries) {
+        if (!entry.button.isConnected) continue;
+
+        const liked = Boolean(data.liked && data.liked[key]);
+        const count = Number(data.counts && data.counts[key] || 0);
+
+        entry.button.classList.toggle("liked", liked);
+        entry.button.setAttribute("aria-pressed", String(liked));
+        entry.button.innerHTML =
+          (liked ? "❤️ Liked " : "♡ Like ") +
+          '<span class="findme-like-count">' + count + '</span>';
+        entry.button.title = count + (count === 1 ? " like" : " likes");
+        entry.button.disabled = false;
+        entry.button.dataset.liked = String(liked);
+      }
+    } catch (error) {
+      console.error("Could not refresh Likes:", error);
+    }
+  }
+
+  async function toggleProductLike(key, button) {
+    const wasLiked = button.dataset.liked === "true";
+    button.disabled = true;
+
+    try {
+      const response = await fetch("/api/likes/update", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        credentials: "same-origin",
+        body: JSON.stringify({
+          key,
+          action: wasLiked ? "unlike" : "like"
+        })
+      });
+
+      const result = await response.json();
+
+      if (response.status === 401) {
+        alert("Please log in to like products.");
+        return;
+      }
+
+      if (!response.ok) {
+        alert(result.error || "Your Like could not be saved.");
+        return;
+      }
+
+      await refreshLikeButtons();
+    } catch (error) {
+      alert("Could not connect to the local server. Please try again.");
+    } finally {
+      button.disabled = false;
+    }
+  }
+
+
+  // My Favourites is separate from Likes and MyCart.
+  const FAVOURITES_KEY = "findme_favourites_v1";
+
+  function getFavouriteProducts() {
+    try {
+      const value = JSON.parse(
+        localStorage.getItem(FAVOURITES_KEY) || "[]"
+      );
+      return Array.isArray(value) ? value : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function favouriteIdentity(product) {
+    return JSON.stringify([
+      product.id ?? "",
+      product.name || "",
+      product.seller || "",
+      product.price ?? "",
+      product.buyUrl || "",
+      product.image || ""
+    ]);
+  }
+
+  function updateFavouriteButton(button, product) {
+    const saved = getFavouriteProducts().some(
+      item => favouriteIdentity(item) === favouriteIdentity(product)
+    );
+
+    button.textContent = saved
+      ? "⭐ Saved to Favourites"
+      : "☆ Save to Favourites";
+
+    button.setAttribute("aria-pressed", String(saved));
+    button.style.background = saved ? "#fef3c7" : "#e5edff";
+    button.style.color = "#172033";
+  }
+
+  function toggleFavourite(product, button) {
+    const favourites = getFavouriteProducts();
+    const key = favouriteIdentity(product);
+
+    const alreadySaved = favourites.some(
+      item => favouriteIdentity(item) === key
+    );
+
+    const updated = alreadySaved
+      ? favourites.filter(item => favouriteIdentity(item) !== key)
+      : [...favourites, product];
+
+    try {
+      localStorage.setItem(FAVOURITES_KEY, JSON.stringify(updated));
+      updateFavouriteButton(button, product);
+    } catch {
+      alert("Could not save Favourites in this browser.");
+    }
+  }
+
+  function addText(parent, tag, value, className = "") {
+    const element = document.createElement(tag);
+    element.textContent = value == null ? "" : String(value);
+
+    if (className) element.className = className;
+
+    parent.appendChild(element);
+    return element;
+  }
+
+  function validPurchaseUrl(value) {
+    if (!value) return null;
+
+    try {
+      const url = new URL(value);
+
+      if (url.protocol === "https:" || url.protocol === "http:") {
+        return url.href;
+      }
+    } catch {}
+
+    return null;
+  }
+
+  function loadProducts() {
+    try {
+      const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+      products = Array.isArray(stored) ? stored : [];
+      status.textContent = "";
+    } catch {
+      products = [];
+      status.textContent =
+        "Products could not be read from browser storage.";
+    }
+
+    populateCategories();
+    render();
+  }
+
+  function populateCategories() {
+    const select = $("category");
+    const previous = select.value;
+
+    select.replaceChildren();
+
+    const all = document.createElement("option");
+    all.value = "";
+    all.textContent = "All categories";
+    select.appendChild(all);
+
+    const categories = [...new Set(
+      products.map(p => String(p.category || "Other"))
+    )].sort();
+
+    for (const category of categories) {
+      const option = document.createElement("option");
+      option.value = category;
+      option.textContent = category;
+      select.appendChild(option);
+    }
+
+    if (categories.includes(previous)) select.value = previous;
+  }
+
+  function render() {
+    productsBox.replaceChildren();
+
+    const query = $("search").value.trim().toLowerCase();
+    const category = $("category").value;
+
+    const filtered = products.filter(product => {
+      const searchable = [
+        product.name,
+        product.description,
+        product.category,
+        product.condition,
+        product.quality,
+        product.seller,
+        product.location
+      ].join(" ").toLowerCase();
+
+      return searchable.includes(query) &&
+        (!category || String(product.category || "Other") === category);
+    });
+
+    summary.textContent =
+      filtered.length + (filtered.length === 1
+        ? " product found"
+        : " products found");
+
+    if (!filtered.length) {
+      addText(
+        productsBox,
+        "p",
+        products.length
+          ? "No products match your search. Try another search or category."
+          : "No products have been listed yet. Visit SellMe to add your first product.",
+        "empty"
+      );
+      return;
+    }
+
+    for (const product of filtered) {
+      const card = document.createElement("article");
+      card.className = "product";
+
+      if (product.image &&
+          (String(product.image).startsWith("data:image/") ||
+           validPurchaseUrl(product.image))) {
+        const img = document.createElement("img");
+        img.src = product.image;
+        img.alt = product.name || "Product image";
+        img.loading = "lazy";
+
+        img.addEventListener("error", () => img.remove(), { once: true });
+        card.appendChild(img);
+      } else {
+        const placeholder = document.createElement("div");
+        placeholder.className = "empty";
+        placeholder.textContent = "📦 No picture available";
+        card.appendChild(placeholder);
+      }
+
+      const info = document.createElement("div");
+      info.className = "product-info";
+
+      addText(info, "span", product.category || "Other", "badge");
+      addText(info, "h2", product.name || "Unnamed product");
+
+      const likeKey = likeProductKey(product);
+      const likeButton = document.createElement("button");
+      likeButton.type = "button";
+      likeButton.className = "findme-like-button";
+      likeButton.textContent = "♡ Like 0";
+      likeButton.setAttribute("aria-label", "Like this product");
+      likeButton.setAttribute("aria-pressed", "false");
+      likeButton.dataset.liked = "false";
+      likeButton.addEventListener("click", () =>
+        toggleProductLike(likeKey, likeButton)
+      );
+      likeButtons.set(likeKey, {button: likeButton});
+
+      info.appendChild(likeButton);
+
+      const favouriteButton = document.createElement("button");
+      favouriteButton.type = "button";
+      favouriteButton.className = "findme-favourite-button";
+      favouriteButton.style.cssText =
+        "display:block;margin-top:8px;padding:10px 12px;" +
+        "border:0;border-radius:8px;cursor:pointer;font-weight:700";
+      favouriteButton.addEventListener("click", () =>
+        toggleFavourite(product, favouriteButton)
+      );
+      updateFavouriteButton(favouriteButton, product);
+      info.appendChild(favouriteButton);
+
+
+      if (product.description && product.description.trim()) {
+        addText(info, "p", product.description);
+      } else {
+        addText(
+          info,
+          "p",
+          "Product description not available yet. Contact the seller for more details.",
+          "muted"
+        );
+      }
+
+      const price = Number(product.price);
+
+      if (Number.isFinite(price) && price > 0) {
+        addText(
+          info,
+          "p",
+          "Price: " + price.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          }),
+          "price"
+        );
+      }
+
+      if (product.condition) {
+        addText(info, "p", "Condition: " + product.condition);
+      }
+
+      if (product.quality) {
+        addText(info, "p", "Physical quality: " + product.quality);
+      } else {
+        addText(info, "p", "Physical quality: Not assessed", "muted");
+      }
+
+      if (product.qualityDetails) {
+        addText(info, "p", product.qualityDetails);
+      }
+
+      const stockCount = Number(product.stock);
+      const stockKnown =
+        product.stock !== undefined &&
+        product.stock !== null &&
+        Number.isFinite(stockCount) &&
+        stockCount >= 0;
+
+      const stockState = !stockKnown
+        ? "unknown"
+        : stockCount === 0
+          ? "out"
+          : stockCount <= 5
+            ? "low"
+            : "in";
+
+      const stockLabel = !stockKnown
+        ? "⚪ Availability not confirmed"
+        : stockCount === 0
+          ? "🔴 Out of Stock"
+          : stockCount <= 5
+            ? "🟠 Low Stock — " + stockCount + " remaining"
+            : "🟢 In Stock — " + stockCount + " available";
+
+      addText(info, "span", stockLabel, "stock-badge stock-" + stockState);
+
+      if (product.seller) {
+        addText(info, "p", "Seller: " + product.seller);
+      }
+
+      if (product.location) {
+        addText(info, "p", "Find it at: " + product.location);
+      }
+
+      const url = validPurchaseUrl(product.buyUrl);
+
+      if (url && !(stockKnown && stockCount === 0)) {
+        const link = document.createElement("a");
+        link.className = "buy-button";
+        link.href = url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = "🛒 View or Buy Product";
+        info.appendChild(link);
+      } else if (stockKnown && stockCount === 0) {
+        addText(
+          info,
+          "p",
+          "This product is sold out. Please check again later or contact the seller.",
+          "muted"
+        );
+      } else {
+        addText(
+          info,
+          "p",
+          "Purchase link not provided. Contact the seller for buying details.",
+          "muted"
+        );
+      }
+
+      card.appendChild(info);
+      productsBox.appendChild(card);
+    }
+
+    refreshLikeButtons();
+  }
+
+  $("search").addEventListener("input", render);
+  $("category").addEventListener("change", render);
+
+
+  // AddMe: searchable product selection, exclusive to BuyMe.
+  const ADDME_KEY = "findme_buyme_selection_v1";
+  const addMeModal = $("addMeModal");
+  const addMeSearch = $("addMeSearch");
+  const addMeProducts = $("addMeProducts");
+  const addMeSelected = $("addMeSelected");
+  const addMeSummary = $("addMeSummary");
+
+  function productKey(product) {
+    return JSON.stringify([
+      product.name || "",
+      product.seller || "",
+      product.price ?? "",
+      product.buyUrl || "",
+      product.image || ""
+    ]);
+  }
+
+  function getSelected() {
+    try {
+      const value = JSON.parse(localStorage.getItem(ADDME_KEY) || "[]");
+      return Array.isArray(value) ? value : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function saveSelected(items) {
+    try {
+      localStorage.setItem(ADDME_KEY, JSON.stringify(items));
+      updateMyCartCount();
+      return true;
+    } catch {
+      addMeSummary.textContent =
+        "Your selection could not be saved in this browser.";
+      return false;
+    }
+  }
+
+  function renderAddMe() {
+    addMeProducts.replaceChildren();
+
+    const query = addMeSearch.value.trim().toLowerCase();
+    const selected = getSelected();
+    const selectedKeys = new Set(selected.map(productKey));
+
+    addMeSelected.replaceChildren();
+    addText(
+      addMeSelected,
+      "strong",
+      "Your selection: " + selected.length + " item(s)"
+    );
+
+    if (selected.length) {
+      for (const item of selected) {
+        const row = document.createElement("div");
+        row.style.cssText =
+          "display:flex;justify-content:space-between;gap:10px;" +
+          "align-items:center;padding:6px 0";
+
+        addText(row, "span", item.name || "Unnamed product");
+
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.textContent = "Remove";
+        remove.addEventListener("click", () => {
+          saveSelected(getSelected().filter(
+            p => productKey(p) !== productKey(item)
+          ));
+          renderAddMe();
+        });
+
+        row.appendChild(remove);
+        addMeSelected.appendChild(row);
+      }
+    } else {
+      addText(addMeSelected, "p", "No products selected yet.");
+    }
+
+    const filtered = products.filter(product => {
+      const searchable = [
+        product.name, product.description, product.category,
+        product.seller, product.location
+      ].join(" ").toLowerCase();
+
+      return searchable.includes(query);
+    });
+
+    addMeSummary.textContent =
+      filtered.length + " product(s) available";
+
+    if (!filtered.length) {
+      addText(
+        addMeProducts,
+        "p",
+        products.length
+          ? "No matching products. Try another search."
+          : "No products are listed yet. Products listed on SellMe will appear here.",
+        "empty"
+      );
+      return;
+    }
+
+    for (const product of filtered) {
+      const card = document.createElement("article");
+      card.style.cssText =
+        "display:flex;gap:12px;align-items:center;padding:12px;" +
+        "border:1px solid #dce2eb;border-radius:12px";
+
+      if (product.image &&
+          (String(product.image).startsWith("data:image/") ||
+           validPurchaseUrl(product.image))) {
+        const img = document.createElement("img");
+        img.src = product.image;
+        img.alt = product.name || "Product image";
+        img.loading = "lazy";
+        img.style.cssText =
+          "width:76px;height:76px;object-fit:contain;border-radius:8px";
+        img.addEventListener("error", () => img.remove(), { once: true });
+        card.appendChild(img);
+      }
+
+      const info = document.createElement("div");
+      info.style.cssText = "flex:1;min-width:0";
+
+      addText(info, "strong", product.name || "Unnamed product");
+
+      if (product.category) {
+        addText(info, "p", product.category);
+      }
+
+      const price = Number(product.price);
+      if (Number.isFinite(price) && price > 0) {
+        addText(
+          info, "p",
+          "Price: " + price.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          })
+        );
+      }
+
+      const button = document.createElement("button");
+      button.type = "button";
+
+      const key = productKey(product);
+      button.textContent = selectedKeys.has(key)
+        ? "✓ Selected — Remove"
+        : "＋ Add to selection";
+
+      button.style.cssText =
+        "padding:10px;border:0;border-radius:8px;" +
+        "background:#e5edff;cursor:pointer";
+
+      button.addEventListener("click", () => {
+        const current = getSelected();
+        const exists = current.some(p => productKey(p) === key);
+
+        const updated = exists
+          ? current.filter(p => productKey(p) !== key)
+          : [...current, product];
+
+        if (saveSelected(updated)) renderAddMe();
+      });
+
+      info.appendChild(button);
+      card.appendChild(info);
+      addMeProducts.appendChild(card);
+    }
+  }
+
+
+  // MyCart uses the existing AddMe selection in this browser.
+  const CART_KEY = "findme_mycart_quantities_v1";
+  const myCartModal = $("myCartModal");
+  const myCartItems = $("myCartItems");
+
+  function getCartQuantities() {
+    try {
+      const value = JSON.parse(localStorage.getItem(CART_KEY) || "{}");
+      return value && typeof value === "object" && !Array.isArray(value)
+        ? value : {};
+    } catch {
+      return {};
+    }
+  }
+
+  function saveCartQuantities(value) {
+    try {
+      localStorage.setItem(CART_KEY, JSON.stringify(value));
+      return true;
+    } catch {
+      $("myCartSummary").textContent =
+        "The cart could not be saved in this browser.";
+      return false;
+    }
+  }
+
+  function updateMyCartCount() {
+    const selected = getSelected();
+    const quantities = getCartQuantities();
+
+    const count = selected.reduce((sum, item) => {
+      const quantity = Number(quantities[productKey(item)] || 1);
+      return sum + (Number.isInteger(quantity) && quantity > 0
+        ? quantity : 1);
+    }, 0);
+
+    $("myCartCount").textContent = count;
+  }
+
+  function renderMyCart() {
+    myCartItems.replaceChildren();
+
+    const selected = getSelected();
+    const quantities = getCartQuantities();
+    let total = 0;
+    let pricedItems = 0;
+    let itemCount = 0;
+
+    if (!selected.length) {
+      addText(myCartItems, "p",
+        "Your MyCart is empty. Open AddMe to find products.",
+        "empty");
+    }
+
+    for (const product of selected) {
+      const key = productKey(product);
+      let quantity = Number(quantities[key] || 1);
+
+      if (!Number.isInteger(quantity) || quantity < 1) quantity = 1;
+      itemCount += quantity;
+
+      const row = document.createElement("article");
+      row.style.cssText =
+        "border:1px solid #dce2eb;border-radius:12px;padding:14px";
+
+      const top = document.createElement("div");
+      top.style.cssText =
+        "display:flex;justify-content:space-between;gap:12px;align-items:start";
+
+      const details = document.createElement("div");
+      details.style.cssText = "min-width:0;flex:1";
+
+      addText(details, "strong", product.name || "Unnamed product");
+
+      const price = Number(product.price);
+      const validPrice = Number.isFinite(price) && price > 0;
+
+      if (validPrice) {
+        addText(details, "p",
+          "Unit price: " + price.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          }));
+        total += price * quantity;
+        pricedItems++;
+      } else {
+        addText(details, "p",
+          "Price not available — confirm with seller.", "muted");
+      }
+
+      if (product.seller) {
+        addText(details, "p", "Seller: " + product.seller);
+      }
+
+      top.appendChild(details);
+
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.textContent = "Remove";
+      remove.style.cssText =
+        "padding:7px;border:1px solid #ddd;border-radius:7px;cursor:pointer";
+      remove.addEventListener("click", () => {
+        saveSelected(getSelected().filter(p => productKey(p) !== key));
+        const updated = getCartQuantities();
+        delete updated[key];
+        saveCartQuantities(updated);
+        renderMyCart();
+        renderAddMe();
+        updateMyCartCount();
+      });
+
+      top.appendChild(remove);
+      row.appendChild(top);
+
+      const controls = document.createElement("div");
+      controls.style.cssText =
+        "display:flex;align-items:center;gap:12px;margin-top:12px";
+
+      const minus = document.createElement("button");
+      minus.type = "button";
+      minus.textContent = "−";
+      minus.setAttribute("aria-label", "Decrease quantity");
+      minus.style.cssText =
+        "width:38px;height:36px;font-size:20px;cursor:pointer";
+      minus.disabled = quantity <= 1;
+
+      const quantityLabel = document.createElement("strong");
+      quantityLabel.textContent = "Quantity: " + quantity;
+
+      const plus = document.createElement("button");
+      plus.type = "button";
+      plus.textContent = "+";
+      plus.setAttribute("aria-label", "Increase quantity");
+      plus.style.cssText =
+        "width:38px;height:36px;font-size:20px;cursor:pointer";
+      plus.disabled = quantity >= 99;
+
+      function changeQuantity(delta) {
+        const updated = getCartQuantities();
+        const next = Math.max(1, Math.min(99, quantity + delta));
+        updated[key] = next;
+
+        if (saveCartQuantities(updated)) {
+          renderMyCart();
+          updateMyCartCount();
+        }
+      }
+
+      minus.addEventListener("click", () => changeQuantity(-1));
+      plus.addEventListener("click", () => changeQuantity(1));
+
+      controls.append(minus, quantityLabel, plus);
+      row.appendChild(controls);
+
+      if (validPrice) {
+        addText(row, "p",
+          "Item subtotal: " + (price * quantity).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          }));
+      }
+
+      myCartItems.appendChild(row);
+    }
+
+    $("myCartSummary").textContent =
+      itemCount + (itemCount === 1 ? " item in MyCart" : " items in MyCart");
+
+    $("myCartTotal").textContent =
+      "Total of priced items: " + total.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }) + (pricedItems < selected.length
+        ? " (some items have no listed price)" : "");
+  }
+
+  function openMyCart() {
+    renderMyCart();
+    myCartModal.hidden = false;
+    document.body.style.overflow = "hidden";
+    $("closeMyCart").focus();
+  }
+
+  function closeMyCart() {
+    myCartModal.hidden = true;
+    document.body.style.overflow = "";
+    $("myCartButton").focus();
+  }
+
+  $("myCartButton").addEventListener("click", openMyCart);
+  $("closeMyCart").addEventListener("click", closeMyCart);
+  $("doneMyCart").addEventListener("click", closeMyCart);
+
+  myCartModal.addEventListener("click", event => {
+    if (event.target === myCartModal) closeMyCart();
+  });
+
+  $("clearMyCart").addEventListener("click", () => {
+    if (!getSelected().length) return;
+
+    if (confirm("Remove all selected products from MyCart?")) {
+      saveSelected([]);
+      saveCartQuantities({});
+      renderMyCart();
+      renderAddMe();
+      updateMyCartCount();
+    }
+  });
+
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && !myCartModal.hidden) closeMyCart();
+  });
+
+  function openAddMe() {
+    addMeSearch.value = "";
+    loadProducts();
+    renderAddMe();
+    addMeModal.hidden = false;
+    document.body.style.overflow = "hidden";
+    addMeSearch.focus();
+  }
+
+  function closeAddMe() {
+    addMeModal.hidden = true;
+    document.body.style.overflow = "";
+    $("openAddMe").focus();
+  }
+
+  $("openAddMe").addEventListener("click", openAddMe);
+  $("closeAddMe").addEventListener("click", closeAddMe);
+  $("doneAddMe").addEventListener("click", closeAddMe);
+  addMeSearch.addEventListener("input", renderAddMe);
+
+  addMeModal.addEventListener("click", event => {
+    if (event.target === addMeModal) closeAddMe();
+  });
+
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && !addMeModal.hidden) closeAddMe();
+  });
+
+  // Refresh when another page changes the shared catalogue.
+  window.addEventListener("storage", event => {
+    if (event.key === STORAGE_KEY || event.key === null) {
+      loadProducts();
+    }
+  });
+
+  // Refresh if the user returns to this tab.
+  window.addEventListener("focus", loadProducts);
+
+  loadProducts();
+  updateMyCartCount();
+
+  window.addEventListener("storage", event => {
+    if (event.key === ADDME_KEY || event.key === CART_KEY || event.key === null) {
+      updateMyCartCount();
+      if (!myCartModal.hidden) renderMyCart();
+    }
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MnakaFindMe | Accounts</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    background: #f3f6fa;
+    color: #1f2937;
+  }
+  main { max-width: 760px; margin: auto; }
+  header, section {
+    background: white;
+    padding: 22px;
+    border-radius: 14px;
+    margin-bottom: 18px;
+    box-shadow: 0 3px 14px #0000000d;
+  }
+  h1, h2 { margin-top: 0; }
+  .forms {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 18px;
+  }
+  label { display: block; margin: 13px 0 6px; font-weight: bold; }
+  input, select, button {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font: inherit;
+  }
+  button {
+    margin-top: 16px;
+    background: #155eef;
+    color: white;
+    border: 0;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  button:hover { background: #1047b7; }
+  .secondary { background: #475569; }
+  .muted { color: #64748b; line-height: 1.5; }
+  #status { white-space: pre-wrap; overflow-wrap: anywhere; }
+  nav a { margin-right: 12px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>👤 MnakaFindMe Accounts</h1>
+    <p class="muted">
+      Create your own account to prepare for private customer and
+      salesperson conversations through ChatMe.
+    </p>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/buyme.html">BuyMe</a>
+      <a href="/sell.html">SellMe</a>
+      <a href="/chatme.html">ChatMe</a>
+    </nav>
+  </header>
+
+  <section id="currentAccount" hidden>
+    <h2>You're signed in</h2>
+    <p id="accountDetails"></p>
+    <button id="logout" class="secondary" type="button">Sign Out</button>
+  </section>
+
+  <div class="forms">
+    <section>
+      <h2>Create Account</h2>
+      <form id="registerForm">
+        <label for="fullName">Full name</label>
+        <input id="fullName" maxlength="100" autocomplete="name" required>
+
+        <label for="newUsername">Username</label>
+        <input id="newUsername" minlength="3" maxlength="30"
+          pattern="[A-Za-z0-9_]{3,30}" autocomplete="username" required>
+        <p class="muted">Use 3–30 letters, numbers or underscores.</p>
+
+        <label for="email">Email address</label>
+        <input id="email" type="email" maxlength="254"
+          autocomplete="email" required>
+
+        <label for="newPassword">Password</label>
+        <input id="newPassword" type="password" minlength="10"
+          maxlength="1024" autocomplete="new-password" required>
+
+        <label for="accountType">Account type</label>
+        <select id="accountType" required>
+          <option value="Customer">Customer</option>
+          <option value="Salesperson">Salesperson</option>
+          <option value="Both">Both</option>
+        </select>
+
+        <button type="submit">Create Account</button>
+      </form>
+    </section>
+
+    <section>
+      <h2>Sign In</h2>
+      <form id="loginForm">
+        <label for="loginUsername">Username or email</label>
+        <input id="loginUsername" autocomplete="username" required>
+
+        <label for="loginPassword">Password</label>
+        <input id="loginPassword" type="password"
+          autocomplete="current-password" required>
+
+        <button type="submit">Sign In</button>
+      </form>
+    </section>
+  </div>
+
+  <section>
+    <h2>Account status</h2>
+    <p id="status" role="status" aria-live="polite">
+      Checking account status...
+    </p>
+  </section>
+</main>
+
+<script>
+(() => {
+  "use strict";
+
+  const $ = id => document.getElementById(id);
+  const status = $("status");
+
+  async function api(path, data) {
+    const response = await fetch(path, {
+      method: data === undefined ? "GET" : "POST",
+      credentials: "same-origin",
+      headers: data === undefined ? {} : {
+        "Content-Type": "application/json"
+      },
+      body: data === undefined ? undefined : JSON.stringify(data)
+    });
+
+    let result;
+    try {
+      result = await response.json();
+    } catch {
+      throw new Error("The server returned an unexpected response.");
+    }
+
+    if (!response.ok) {
+      throw new Error(result.error || "The request failed.");
+    }
+
+    return result;
+  }
+
+  function showUser(user) {
+    const signedIn = Boolean(user);
+    $("currentAccount").hidden = !signedIn;
+
+    $("registerForm").hidden = signedIn;
+    $("loginForm").hidden = signedIn;
+
+    if (signedIn) {
+      $("accountDetails").textContent =
+        user.fullName + " (@" + user.username + ") — " +
+        user.accountType;
+
+      status.textContent =
+        "Signed in successfully. Your account is ready for testing.";
+    } else {
+      status.textContent =
+        "You are not signed in. Create an account or sign in.";
+    }
+  }
+
+  $("registerForm").addEventListener("submit", async event => {
+    event.preventDefault();
+    status.textContent = "Creating your account...";
+
+    try {
+      const result = await api("/api/auth/register", {
+        fullName: $("fullName").value.trim(),
+        username: $("newUsername").value.trim(),
+        email: $("email").value.trim(),
+        password: $("newPassword").value,
+        accountType: $("accountType").value
+      });
+
+      $("registerForm").reset();
+      showUser(result.user);
+    } catch (error) {
+      status.textContent = error.message;
+    }
+  });
+
+  $("loginForm").addEventListener("submit", async event => {
+    event.preventDefault();
+    status.textContent = "Signing in...";
+
+    try {
+      const result = await api("/api/auth/login", {
+        username: $("loginUsername").value.trim(),
+        password: $("loginPassword").value
+      });
+
+      $("loginForm").reset();
+      showUser(result.user);
+    } catch (error) {
+      status.textContent = error.message;
+    }
+  });
+
+  $("logout").addEventListener("click", async () => {
+    try {
+      await api("/api/auth/logout", {});
+      showUser(null);
+    } catch (error) {
+      status.textContent = error.message;
+    }
+  });
+
+  api("/api/auth/me")
+    .then(result => showUser(result.user))
+    .catch(error => {
+      status.textContent = "Could not check account status: " + error.message;
+    });
+})();
+</script>
+</body>
+</html>

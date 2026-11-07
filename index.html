@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0b1020">
+<title>MnakaFindMe | Product Search</title>
+
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #0b1020;
+  --panel: #141c30;
+  --border: #293650;
+  --text: #f1f5f9;
+  --muted: #a0aec0;
+  --blue: #60a5fa;
+  --green: #86efac;
+  --yellow: #fcd34d;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, sans-serif;
+}
+
+main {
+  width: min(100% - 28px, 760px);
+  margin: auto;
+  padding: 28px 0 45px;
+}
+
+header { margin-bottom: 25px; }
+
+.brand {
+  font-size: 36px;
+  font-weight: 850;
+  letter-spacing: -1.5px;
+  color: var(--blue);
+}
+
+.tagline {
+  color: var(--muted);
+  margin-top: 3px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  color: var(--green);
+  font-size: 12px;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 17px;
+  padding: 19px;
+  margin-bottom: 16px;
+}
+
+h2 { font-size: 19px; margin: 0 0 12px; }
+h3 { font-size: 17px; }
+
+.muted { color: var(--muted); }
+.small { font-size: 13px; line-height: 1.6; }
+
+button, input, select {
+  font: inherit;
+  width: 100%;
+  min-height: 46px;
+  padding: 12px;
+  border-radius: 10px;
+}
+
+button {
+  cursor: pointer;
+  background: var(--blue);
+  color: #081225;
+  border: 0;
+  font-weight: 700;
+  margin-top: 9px;
+}
+
+button.secondary {
+  background: #26344d;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+input, select {
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  margin-top: 8px;
+}
+
+label {
+  display: block;
+  margin-top: 12px;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.stat {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 13px;
+}
+
+.stat strong {
+  display: block;
+  font-size: 24px;
+  color: var(--blue);
+}
+
+#reader {
+  width: 100%;
+  overflow: hidden;
+  border-radius: 12px;
+  margin-top: 14px;
+}
+
+#reader video {
+  border-radius: 10px;
+}
+
+#reader__dashboard_section_csr button {
+  width: auto;
+}
+
+.result {
+  overflow-wrap: anywhere;
+  line-height: 1.65;
+}
+
+.notice {
+  border-radius: 10px;
+  padding: 12px;
+  margin-top: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+.success { color: var(--green); }
+.warning { color: var(--yellow); }
+
+.history-item {
+  border-top: 1px solid var(--border);
+  padding: 13px 0;
+  overflow-wrap: anywhere;
+}
+
+.history-item button {
+  width: auto;
+  min-height: 36px;
+  padding: 7px 12px;
+}
+
+.product-image {
+  width: 120px;
+  max-width: 100%;
+  display: block;
+  border-radius: 10px;
+  margin: 12px 0;
+}
+
+footer {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.7;
+  padding: 12px 0;
+}
+
+@media (max-width: 420px) {
+  main { width: min(100% - 20px, 760px); }
+  .panel { padding: 14px; }
+  .brand { font-size: 32px; }
+}
+</style>
+</head>
+
+<body style="
+  margin:0;
+  min-height:100vh;
+  background:#0b1020;
+  color:#f1f5f9;
+  font-family:system-ui,sans-serif;
+">
+<a id="mnaka-accounts-button"
+   href="/accounts.html"
+   style="
+     position:fixed;
+     top:15px;
+     right:15px;
+     z-index:99999;
+     display:inline-block;
+     padding:12px 18px;
+     background:#1769ff;
+     color:white;
+     text-decoration:none;
+     font-weight:bold;
+     font-size:15px;
+     border-radius:10px;
+     box-shadow:0 3px 12px rgba(0,0,0,0.2);
+   ">👤 Accounts / Login</a>
+
+  <main style="
+    width:min(720px,calc(100% - 32px));
+    margin:0 auto;
+    padding:45px 0 35px;
+  ">
+    <header style="text-align:center;margin-bottom:32px">
+      <h1 style="
+        margin:0;
+        font-size:clamp(34px,7vw,54px);
+        color:#60a5fa;
+      ">MnakaFindMe</h1>
+      <p style="color:#a0aec0">
+        Your Local Vendor, Shop Next Door.
+      </p>
+    </header>
+
+    <section style="
+      background:#141c30;
+      border:1px solid #293650;
+      border-radius:18px;
+      padding:24px;
+    ">
+      <h2 style="margin-top:0">🔎 Find a Product</h2>
+      <p style="color:#a0aec0">
+        Search products listed on this browser or find products online.
+      </p>
+
+      <form id="mainSearchForm" style="
+        display:flex;
+        flex-wrap:wrap;
+        gap:10px;
+      ">
+        <input
+          id="mainSearchQuery"
+          type="search"
+          maxlength="200"
+          placeholder="What product are you looking for?"
+          aria-label="Search for a product"
+          required
+          style="
+            flex:1;
+            min-width:180px;
+            padding:14px;
+            border-radius:10px;
+            border:1px solid #293650;
+            background:#0b1020;
+            color:#f1f5f9;
+            font-size:16px;
+          "
+        >
+        <button type="submit" style="
+          padding:14px 22px;
+          border:0;
+          border-radius:10px;
+          background:#60a5fa;
+          color:#0b1020;
+          font-size:16px;
+          font-weight:bold;
+          cursor:pointer;
+        ">🔎 Search</button>
+      </form>
+
+      <p id="searchStatus" role="status" aria-live="polite"></p>
+      <div id="internetLinks" hidden>
+        <p>Search the internet:</p>
+        <ul id="internetResults"></ul>
+      </div>
+    </section>
+
+    <section style="margin-top:28px">
+      <h2 style="text-align:center">Explore MnakaFindMe</h2>
+
+      <div style="
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+        gap:14px;
+      ">
+        <a href="/photoadd.html" style="
+          display:block;padding:20px 12px;border-radius:12px;
+          background:#1d4ed8;color:white;text-decoration:none;
+          text-align:center;font-weight:bold;
+        ">
+          📸 AddMe
+          <small style="display:block;margin-top:7px;font-weight:normal">
+            Add a product
+          </small>
+        </a>
+
+        <a href="/sell.html" style="
+          display:block;padding:20px 12px;border-radius:12px;
+          background:#166534;color:white;text-decoration:none;
+          text-align:center;font-weight:bold;
+        ">
+          🏪 SellMe
+          <small style="display:block;margin-top:7px;font-weight:normal">
+            Manage products and listings
+          </small>
+        </a>
+
+        <a href="/buyme.html" style="
+          display:block;padding:20px 12px;border-radius:12px;
+          background:#047857;color:white;text-decoration:none;
+          text-align:center;font-weight:bold;
+        ">
+          🛒 BuyMe
+          <small style="display:block;margin-top:7px;font-weight:normal">
+            Browse available products
+          </small>
+        </a>
+      </div>
+    </section>
+
+    <footer style="
+      text-align:center;color:#94a3b8;font-size:13px;margin-top:38px;
+    ">
+      MnakaFindMe · Find products with confidence
+      <p><a href="/secureme.html" style="color:#60a5fa">
+        SecureMe — Scam Protection
+      </a></p>
+    </footer>
+  </main>
+
+  <script>
+  (() => {
+    "use strict";
+
+    const form = document.getElementById("mainSearchForm");
+    const input = document.getElementById("mainSearchQuery");
+    const status = document.getElementById("searchStatus");
+    const internetLinks = document.getElementById("internetLinks");
+    const internetResults = document.getElementById("internetResults");
+
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+
+      const query = input.value.trim();
+      if (!query) return;
+
+      let products = [];
+
+      try {
+        const stored = JSON.parse(
+          localStorage.getItem("findme_sell_products_v1") || "[]"
+        );
+        if (Array.isArray(stored)) products = stored;
+      } catch {}
+
+      const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
+
+      const matches = products.filter(product => {
+        if (!product || Number(product.stock) <= 0) return false;
+
+        const text = [
+          product.name, product.description, product.category,
+          product.condition, product.seller, product.location
+        ].join(" ").toLowerCase();
+
+        return terms.every(term => text.includes(term));
+      });
+
+      internetLinks.hidden = true;
+      internetResults.replaceChildren();
+
+      if (matches.length) {
+        status.textContent =
+          matches.length + " available local product(s) found. Opening BuyMe.";
+
+        window.location.href =
+          "/buyme.html?search=" + encodeURIComponent(query);
+        return;
+      }
+
+      status.textContent =
+        "No available local match found. You can search online below.";
+
+      const engines = [
+        ["Google", "https://www.google.com/search?q="],
+        ["Bing", "https://www.bing.com/search?q="],
+        ["DuckDuckGo", "https://duckduckgo.com/?q="]
+      ];
+
+      for (const [name, base] of engines) {
+        const li = document.createElement("li");
+        const a = document.createElement("a");
+
+        a.href = base + encodeURIComponent(query + " products for sale");
+        a.textContent = "Search with " + name;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        a.style.color = "#60a5fa";
+
+        li.appendChild(a);
+        internetResults.appendChild(li);
+      }
+
+      internetLinks.hidden = false;
+    });
+  })();
+  </script>
+</body>
+</html>

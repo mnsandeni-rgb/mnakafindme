@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0b1020">
+<title>findMe | ScanMe</title>
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #0b1020;
+  --panel: #141c30;
+  --border: #293650;
+  --text: #f1f5f9;
+  --muted: #a0aec0;
+  --blue: #60a5fa;
+  --green: #86efac;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, sans-serif;
+}
+
+header {
+  padding: 20px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+
+nav, main {
+  max-width: 900px;
+  margin: auto;
+}
+
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+h1, h2 { color: var(--blue); }
+
+main { padding: 20px; }
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 22px;
+  margin-bottom: 20px;
+}
+
+.muted { color: var(--muted); }
+
+button, input, textarea, select {
+  font: inherit;
+  padding: 12px;
+  border-radius: 9px;
+}
+
+button {
+  background: var(--blue);
+  color: #0b1020;
+  border: 0;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+input, textarea, select {
+  width: 100%;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+label {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.field { margin-bottom: 15px; }
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 12px 0;
+}
+
+a { color: var(--blue); }
+
+#reader {
+  width: 100%;
+  max-width: 500px;
+  margin: 16px auto;
+}
+
+#productPreview {
+  display: none;
+  width: 140px;
+  max-height: 140px;
+  object-fit: contain;
+  margin: 12px 0;
+  border-radius: 10px;
+}
+
+.status {
+  overflow-wrap: anywhere;
+  line-height: 1.6;
+}
+
+@media (max-width: 600px) {
+  main { padding: 12px; }
+  .panel { padding: 16px; }
+}
+</style>
+</head>
+
+<body>
+<header>
+  <nav>
+    <h1>📷 ScanMe</h1>
+    <div class="actions">
+      <a href="/">Home</a>
+      <a href="/sell.html">My Products for Sale</a>
+    </div>
+  </nav>
+</header>
+
+<main>
+  <section class="panel">
+    <h2>Scan a Product Barcode</h2>
+    <p class="muted">
+      Scan a barcode to look up available product information.
+      Check the details before adding the item to your catalogue.
+    </p>
+
+    <div class="actions">
+      <button id="startScan" type="button">📷 Start Camera Scanner</button>
+      <button id="stopScan" type="button" disabled>Stop Scanner</button>
+    </div>
+
+    <div id="reader"></div>
+
+    <p id="scanStatus" class="status" role="status" aria-live="polite">
+      You can scan a barcode or enter it manually below.
+    </p>
+
+    <div class="field">
+      <label for="barcode">Barcode number</label>
+      <input id="barcode"
+             inputmode="numeric"
+             autocomplete="off"
+             placeholder="Enter barcode digits">
+    </div>
+
+    <button id="lookupButton" type="button">
+      Search Product Database
+    </button>
+
+    <p class="muted">
+      Camera access requires permission. If the database does not recognise
+      a barcode, you can still enter the product details manually.
+    </p>
+  </section>
+
+  <section class="panel">
+    <h2>Product Information</h2>
+
+    <p class="muted">
+      Information is filled in automatically when available.
+      You can correct it before saving.
+    </p>
+
+    <form id="scanProductForm">
+      <div class="field">
+        <label for="name">Product name *</label>
+        <input id="name" maxlength="100" required>
+      </div>
+
+      <div class="field">
+        <label for="brand">Brand</label>
+        <input id="brand" maxlength="100">
+      </div>
+
+      <div class="field">
+        <label for="description">Product description *</label>
+        <textarea id="description" maxlength="2000"></textarea>
+      </div>
+
+      <div class="field">
+        <label for="category">Category</label>
+        <select id="category">
+          <option>Groceries</option>
+          <option>Electronics</option>
+          <option>Computers</option>
+          <option>Phones</option>
+          <option>Clothing</option>
+          <option>Shoes</option>
+          <option>Home and Kitchen</option>
+          <option>Beauty and Health</option>
+          <option>Automotive</option>
+          <option>Books and Stationery</option>
+          <option>Sports and Outdoors</option>
+          <option>Other</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="imageUrl">Product image URL (if available)</label>
+        <input id="imageUrl" type="url" maxlength="1000"
+               placeholder="https://example.com/product-image.jpg">
+        <img id="productPreview" alt="Product preview">
+      </div>
+
+      <div class="field">
+        <label for="price">Your selling price in ZAR *</label>
+        <input id="price" type="number" min="0.01"
+               max="100000000" step="0.01" required>
+      </div>
+
+      <div class="field">
+        <label for="stock">Stock quantity *</label>
+        <input id="stock" type="number" min="0"
+               max="1000000" step="1" value="1" required>
+      </div>
+
+      <div class="field">
+        <label for="quality">Physical quality</label>
+        <select id="quality">
+          <option>Not Assessed</option>
+          <option>Excellent</option>
+          <option>Very Good</option>
+          <option>Good</option>
+          <option>Fair</option>
+          <option>Poor</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="condition">Product condition</label>
+        <select id="condition">
+          <option>New</option>
+          <option>Used - Like New</option>
+          <option>Used - Good</option>
+          <option>Refurbished</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="qualityDetails">Condition notes</label>
+        <textarea id="qualityDetails" maxlength="1500"
+          placeholder="Describe wear, damage or other details buyers should know."></textarea>
+      </div>
+
+      <div class="field">
+        <label for="seller">Shop or seller name</label>
+        <input id="seller" maxlength="100">
+      </div>
+
+      <div class="field">
+        <label for="location">Where can customers find it? *</label>
+        <input id="location" maxlength="200" required
+          placeholder="Shop name, town, collection point or delivery area">
+      </div>
+
+      <div class="field">
+        <label for="buyUrl">Online purchase link (optional)</label>
+        <input id="buyUrl" type="url" maxlength="1000"
+          placeholder="https://example.com/product">
+      </div>
+
+      <div class="actions">
+        <button id="saveProduct" type="submit">➕ Add Product to Sell</button>
+        <button id="clearForm" type="button">Clear Form</button>
+      </div>
+    </form>
+
+    <p id="saveStatus" class="status" role="status" aria-live="polite"></p>
+  </section>
+</main>
+
+<script>
+(() => {
+  "use strict";
+
+  const $ = id => document.getElementById(id);
+  const STORAGE_KEY = "findme_sell_products_v1";
+
+  let scanner = null;
+  let scanning = false;
+  let lastScanned = "";
+  let lookupInProgress = false;
+
+  function status(message) {
+    $("scanStatus").textContent = message;
+  }
+
+  function normalizeBarcode(value) {
+    return value.trim().replace(/\s+/g, "");
+  }
+
+  async function lookupProduct() {
+    const barcode = normalizeBarcode($("barcode").value);
+
+    if (!/^\d{8,14}$/.test(barcode)) {
+      status("Enter a valid barcode containing 8–14 digits.");
+      return;
+    }
+
+    if (lookupInProgress) return;
+    lookupInProgress = true;
+    $("lookupButton").disabled = true;
+    status("Looking up barcode " + barcode + "...");
+
+    try {
+      // Open Food Facts primarily covers food and related products.
+      const endpoint =
+        "https://world.openfoodfacts.org/api/v2/product/" +
+        encodeURIComponent(barcode) +
+        ".json";
+
+      const response = await fetch(endpoint, {
+        headers: { "Accept": "application/json" }
+      });
+
+      if (!response.ok) {
+        throw new Error("Product database request failed.");
+      }
+
+      const data = await response.json();
+
+      if (data.status !== 1 || !data.product) {
+        status(
+          "This barcode was not found in Open Food Facts. " +
+          "Enter the product details manually, or try another database later."
+        );
+        return;
+      }
+
+      const p = data.product;
+
+      $("name").value =
+        p.product_name || p.product_name_en || "";
+
+      $("brand").value = p.brands || "";
+
+      $("description").value =
+        p.generic_name ||
+        p.generic_name_en ||
+        p.product_name ||
+        "";
+
+      const categories = (p.categories || "").toLowerCase();
+
+      if (categories.includes("beverage")) {
+        $("category").value = "Groceries";
+      } else {
+        $("category").value = "Groceries";
+      }
+
+      const image =
+        p.image_front_url ||
+        p.image_url ||
+        "";
+
+      $("imageUrl").value = image;
+      showPreview();
+
+      status(
+        "Product information found. Check the details, enter your selling " +
+        "price and location, and save the listing."
+      );
+
+    } catch (error) {
+      status(
+        "Could not reach the product database. Check your internet " +
+        "connection or enter the product details manually."
+      );
+    } finally {
+      lookupInProgress = false;
+      $("lookupButton").disabled = false;
+    }
+  }
+
+  function showPreview() {
+    const image = $("imageUrl").value.trim();
+    const preview = $("productPreview");
+
+    if (!image) {
+      preview.style.display = "none";
+      preview.removeAttribute("src");
+      return;
+    }
+
+    try {
+      const url = new URL(image);
+
+      if (!["https:", "http:"].includes(url.protocol)) {
+        throw new Error("Unsupported image URL.");
+      }
+
+      preview.onerror = () => {
+        preview.style.display = "none";
+      };
+
+      preview.onload = () => {
+        preview.style.display = "block";
+      };
+
+      preview.src = url.href;
+    } catch {
+      preview.style.display = "none";
+      preview.removeAttribute("src");
+    }
+  }
+
+  async function stopScanner() {
+    if (!scanner || !scanning) return;
+
+    try {
+      await scanner.stop();
+      scanning = false;
+      $("startScan").disabled = false;
+      $("stopScan").disabled = true;
+      status("Scanner stopped.");
+    } catch {
+      status("Could not stop the camera cleanly. Refresh the page if needed.");
+    }
+  }
+
+  async function startScanner() {
+    if (typeof Html5Qrcode === "undefined") {
+      status("Scanner library failed to load. Check your internet connection.");
+      return;
+    }
+
+    if (scanning) return;
+
+    $("startScan").disabled = true;
+    status("Requesting camera access...");
+
+    try {
+      scanner = new Html5Qrcode("reader");
+
+      const config = {
+        fps: 10,
+        qrbox: { width: 250, height: 150 },
+        aspectRatio: 1.5
+      };
+
+      await scanner.start(
+        { facingMode: "environment" },
+        config,
+        async decodedText => {
+          const code = normalizeBarcode(decodedText);
+
+          if (!/^\d{8,14}$/.test(code) || code === lastScanned) {
+            return;
+          }
+
+          lastScanned = code;
+          $("barcode").value = code;
+          status("Barcode scanned: " + code);
+          await stopScanner();
+          await lookupProduct();
+        },
+        () => {}
+      );
+
+      scanning = true;
+      $("stopScan").disabled = false;
+      status("Camera active. Hold the barcode steady inside the scanning area.");
+
+    } catch (error) {
+      scanner = null;
+      scanning = false;
+      $("startScan").disabled = false;
+      $("stopScan").disabled = true;
+
+      status(
+        "Camera unavailable. Allow camera permission, use localhost or HTTPS, " +
+        "and check that another application is not using the camera. " +
+        "You can enter a barcode manually."
+      );
+    }
+  }
+
+  function validHttpUrl(value) {
+    if (!value) return true;
+
+    try {
+      const url = new URL(value);
+      return ["https:", "http:"].includes(url.protocol);
+    } catch {
+      return false;
+    }
+  }
+
+  $("startScan").addEventListener("click", startScanner);
+  $("stopScan").addEventListener("click", stopScanner);
+  $("lookupButton").addEventListener("click", lookupProduct);
+  $("imageUrl").addEventListener("change", showPreview);
+
+  $("clearForm").addEventListener("click", () => {
+    $("scanProductForm").reset();
+    $("barcode").value = "";
+    $("productPreview").style.display = "none";
+    $("productPreview").removeAttribute("src");
+    $("saveStatus").textContent = "";
+    lastScanned = "";
+  });
+
+  $("scanProductForm").addEventListener("submit", event => {
+    event.preventDefault();
+
+    const barcode = normalizeBarcode($("barcode").value);
+    const buyUrl = $("buyUrl").value.trim();
+    const imageUrl = $("imageUrl").value.trim();
+    const name = $("name").value.trim();
+    const description = $("description").value.trim();
+    const location = $("location").value.trim();
+    const price = Number($("price").value);
+    const stock = Number($("stock").value);
+
+    if (!name || !location ||
+        !Number.isFinite(price) || price <= 0 ||
+        !Number.isFinite(stock) || stock < 0 ||
+        !Number.isInteger(stock)) {
+      $("saveStatus").textContent =
+        "Enter a name, description, valid price, stock quantity and location.";
+      return;
+    }
+
+    if (!validHttpUrl(buyUrl) || !validHttpUrl(imageUrl)) {
+      $("saveStatus").textContent =
+        "Purchase and image links must begin with http:// or https://.";
+      return;
+    }
+
+    let products;
+
+    try {
+      products = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+
+      if (!Array.isArray(products)) products = [];
+    } catch {
+      $("saveStatus").textContent =
+        "Could not read your existing product catalogue. No product was added.";
+      return;
+    }
+
+    const product = {
+      id: crypto.randomUUID
+        ? crypto.randomUUID()
+        : String(Date.now()) + Math.random().toString(16).slice(2),
+      barcode,
+      name,
+      description,
+      brand: $("brand").value.trim(),
+      price,
+      stock,
+      category: $("category").value,
+      condition: $("condition").value,
+      quality: $("quality").value,
+      qualityDetails: $("qualityDetails").value.trim(),
+      seller: $("seller").value.trim(),
+      location,
+      buyUrl,
+      image: imageUrl,
+      updatedAt: new Date().toISOString()
+    };
+
+    products.unshift(product);
+
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+      $("saveStatus").textContent =
+        "Product added successfully! Open My Products for Sale to view it.";
+    } catch {
+      $("saveStatus").textContent =
+        "Could not save the product. Browser storage may be full.";
+    }
+  });
+
+  window.addEventListener("beforeunload", () => {
+    if (scanner && scanning) {
+      scanner.stop().catch(() => {});
+    }
+  });
+})();
+</script>
+
+<div style="margin:16px auto;padding:0 16px;text-align:center">
+  <a href="/secureme.html"
+     style="display:inline-block;padding:12px 18px;border-radius:10px;
+            background:#fcd34d;color:#0b1020;text-decoration:none;
+            font-weight:bold">
+    🛡️ SecureMe — Scam Protection
+  </a>
+</div>
+
+
+<div style="margin:16px auto;padding:0 16px;text-align:center">
+  <a href="/buyme.html"
+     style="display:inline-block;padding:13px 20px;border-radius:10px;
+            background:#86efac;color:#0b1020;text-decoration:none;
+            font-weight:bold">
+    🛒 BuyMe — Browse Products
+  </a>
+</div>
+
+</body>
+</html>

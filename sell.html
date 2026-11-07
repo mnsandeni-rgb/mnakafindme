@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0b1020">
+
+<title>findMe | SellMe — Manage Products</title>
+
+<style>
+:root {
+  --bg: #0b1020;
+  --panel: #141c30;
+  --border: #293650;
+  --text: #f1f5f9;
+  --muted: #a0aec0;
+  --blue: #60a5fa;
+  --green: #86efac;
+  --red: #fca5a5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, sans-serif;
+}
+
+header {
+  padding: 20px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+
+nav {
+  max-width: 1200px;
+  margin: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+nav h1 {
+  margin: 0;
+  color: var(--blue);
+}
+
+a {
+  color: var(--blue);
+  text-decoration: none;
+}
+
+main {
+  max-width: 1200px;
+  margin: 30px auto;
+  padding: 0 20px;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+  border-radius: 9px;
+  padding: 12px;
+}
+
+button {
+  cursor: pointer;
+  border: 0;
+  font-weight: 600;
+  background: var(--blue);
+  color: #0b1020;
+}
+
+button:hover {
+  filter: brightness(1.1);
+}
+
+.secondary {
+  background: #293650;
+  color: var(--text);
+}
+
+.danger {
+  background: #7f1d1d;
+  color: white;
+}
+
+form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.field.full {
+  grid-column: 1 / -1;
+}
+
+input,
+textarea,
+select {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.toolbar {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.toolbar input {
+  flex: 1;
+  min-width: 200px;
+}
+
+.products {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 20px;
+}
+
+.product {
+  overflow: hidden;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.product img {
+  display: block;
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  background: var(--bg);
+}
+
+.product-info {
+  padding: 16px;
+}
+
+.product h3 {
+  margin-top: 0;
+  overflow-wrap: anywhere;
+}
+
+.price {
+  font-size: 23px;
+  font-weight: bold;
+  color: var(--green);
+}
+
+.badge {
+  display: inline-block;
+  border: 1px solid var(--border);
+  padding: 4px 8px;
+  border-radius: 20px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.empty {
+  text-align: center;
+  padding: 35px 10px;
+  color: var(--muted);
+}
+
+#editor {
+  display: none;
+}
+
+#message {
+  margin-top: 12px;
+  color: var(--green);
+}
+
+@media (max-width: 600px) {
+  main {
+    padding: 0 12px;
+  }
+
+  .panel {
+    padding: 16px;
+  }
+
+  form {
+    grid-template-columns: 1fr;
+  }
+
+  .field.full {
+    grid-column: auto;
+  }
+}
+
+/* findMe: display product image beside product information */
+.product.has-image {
+  display: grid !important;
+  grid-template-columns: minmax(120px, 220px) minmax(0, 1fr);
+  align-items: start;
+  gap: 18px;
+}
+
+.product.has-image > img {
+  display: block;
+  width: 100%;
+  height: 190px;
+  object-fit: contain;
+  background: #0b1020;
+  border: 1px solid #293650;
+  border-radius: 10px;
+}
+
+.product.has-image .product-info {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.product .product-info a {
+  display: inline-block;
+  margin-top: 10px;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 520px) {
+  .product.has-image {
+    grid-template-columns: minmax(95px, 35%) minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .product.has-image > img {
+    height: 145px;
+  }
+}
+
+
+/* findMe stock availability indicators */
+.stock-badge {
+  display: inline-block;
+  width: fit-content;
+  padding: 5px 10px;
+  margin: 8px 0;
+  border-radius: 7px;
+  font-size: .9rem;
+  font-weight: 700;
+}
+.stock-in {
+  color: #86efac;
+  background: #123524;
+  border: 1px solid #247447;
+}
+.stock-low {
+  color: #fcd34d;
+  background: #422d0b;
+  border: 1px solid #92701d;
+}
+.stock-out {
+  color: #fca5a5;
+  background: #451b25;
+  border: 1px solid #9f3548;
+}
+.stock-unknown {
+  color: #cbd5e1;
+  background: #293650;
+}
+.stock-action {
+  margin-bottom: 8px;
+}
+
+</style>
+</head>
+
+<body>
+
+<style id="findme-three-page-navigation">
+#findme-main-nav {
+  background: #141c30;
+  border-bottom: 1px solid #293650;
+  padding: 14px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+#findme-main-nav a {
+  display: inline-block;
+  padding: 10px 15px;
+  border-radius: 9px;
+  background: #0b1020;
+  color: #f1f5f9;
+  border: 1px solid #293650;
+  text-decoration: none;
+  font-weight: 700;
+}
+#findme-main-nav a.active {
+  background: #86efac;
+  color: #0b1020;
+}
+</style>
+<nav id="findme-main-nav" aria-label="Main navigation">
+  <a href="/photoadd.html" data-page="photoadd.html">📸 AddMe</a>
+  <a href="/sell.html" data-page="sell.html">🏪 SellMe</a>
+  <a href="/buyme.html" data-page="buyme.html">🛒 BuyMe</a>
+</nav>
+<script>
+(() => {
+  const current = location.pathname.split("/").pop() || "index.html";
+  document.querySelectorAll("#findme-main-nav a").forEach(link => {
+    if (link.dataset.page === current) {
+      link.classList.add("active");
+      link.setAttribute("aria-current", "page");
+    }
+  });
+})();
+</script>
+
+
+<header>
+  <nav>
+    <h1>🛍️ findMe Store</h1>
+
+    <div class="actions">
+      <a href="/">← Back to findMe</a>
+      <button id="openEditor">＋ Add Product to Sell</button>
+    </div>
+  </nav>
+</header>
+
+<main>
+
+  <section class="panel">
+    <h2>My Products for Sale</h2>
+
+    <p class="muted">
+      Create your product catalogue, set your prices and manage your listings.
+    </p>
+
+    <p id="summary" class="muted">0 products listed</p>
+  </section>
+
+  <section id="editor" class="panel">
+    <h2 id="formTitle">Add a Product</h2>
+
+    <form id="productForm">
+
+      <div class="field full">
+        <label for="productName">Product name *</label>
+        <input
+          id="productName"
+          maxlength="100"
+          required
+          placeholder="e.g. Wireless headphones">
+      </div>
+
+      <div class="field">
+        <label for="productPrice">Selling price (ZAR) *</label>
+        <input
+          id="productPrice"
+          type="number"
+          min="0.01"
+          max="100000000"
+          step="0.01"
+          required
+          placeholder="499.99">
+      </div>
+
+      <div class="field">
+        <label for="productStock">Stock quantity *</label>
+        <input
+          id="productStock"
+          type="number"
+          min="0"
+          max="1000000"
+          step="1"
+          value="1"
+          required>
+      </div>
+
+      <div class="field">
+        <label for="productCategory">Category</label>
+
+        <select id="productCategory">
+          <option>Electronics</option>
+          <option>Computers</option>
+          <option>Phones</option>
+          <option>Clothing</option>
+          <option>Shoes</option>
+          <option>Home and Kitchen</option>
+          <option>Groceries</option>
+          <option>Beauty and Health</option>
+          <option>Automotive</option>
+          <option>Books and Stationery</option>
+          <option>Sports and Outdoors</option>
+          <option>Other</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="productCondition">Condition</label>
+
+        <select id="productCondition">
+          <option>New</option>
+          <option>Used - Like New</option>
+          <option>Used - Good</option>
+          <option>Refurbished</option>
+        </select>
+      </div>
+
+      <div class="field full">
+  <label for="productDescription">Description *</label>
+  <textarea
+    id="productDescription"
+    maxlength="2000"
+    placeholder="Describe your product, its features, materials, size and condition..."
+  ></textarea>
+</div>
+
+<div class="field full">
+  <label for="productQuality">Physical Quality *</label>
+  <select id="productQuality" required>
+    <option value="Excellent">Excellent — like new</option>
+    <option value="Very Good">Very good — minimal wear</option>
+    <option value="Good">Good — normal signs of use</option>
+    <option value="Fair">Fair — visible wear</option>
+    <option value="Poor">Poor — significant wear or defects</option>
+    <option value="Not Assessed">Not assessed</option>
+  </select>
+</div>
+
+<div class="field full">
+  <label for="productQualityDetails">Quality Details and Physical Condition</label>
+  <textarea
+    id="productQualityDetails"
+    maxlength="1500"
+    placeholder="Describe materials, durability, scratches, damage, defects and wear..."
+  ></textarea>
+</div>
+
+<div class="field">
+  <label for="productSeller">Shop or Seller Name</label>
+  <input id="productSeller" maxlength="100" placeholder="e.g. My Store">
+</div>
+
+<div class="field">
+  <label for="productLocation">Where Can Buyers Find It?</label>
+  <input id="productLocation" maxlength="200" placeholder="e.g. Johannesburg">
+</div>
+
+<div class="field full">
+  <label for="productBuyUrl">Website or Purchase Link</label>
+  <input
+    id="productBuyUrl"
+    type="url"
+    maxlength="1000"
+    placeholder="https://example.com/product"
+  >
+  <small class="muted">Enter a valid product page or online shop URL.</small>
+</div>
+
+      <div class="field full">
+        <label>Product picture (optional)</label>
+
+        <img
+          id="currentProductImage"
+          alt="Current product picture preview"
+          hidden
+          style="display:block;max-width:240px;max-height:220px;
+                 object-fit:contain;border-radius:12px;margin:10px 0;">
+
+        <label for="productImage">Choose from gallery or computer folders</label>
+        <input
+          id="productImage"
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/gif">
+
+        <button id="takeProductPicture" type="button">
+          📷 Take a Picture
+        </button>
+
+        <input
+          id="productCameraImage"
+          type="file"
+          accept="image/*"
+          capture="environment"
+          hidden>
+
+        <label style="display:flex;gap:8px;align-items:center;margin-top:12px">
+          <input id="removeProductImage" type="checkbox">
+          Remove the existing picture
+        </label>
+
+        <small class="muted">
+          Pictures are optional. Maximum 1 MB. If you do not choose a
+          new picture, your existing picture will be kept.
+        </small>
+      </div>
+
+      <div class="field full">
+        <div class="actions">
+          <button id="saveButton" type="submit">Save Product</button>
+
+          <button id="cancelButton" class="secondary" type="button">
+            Cancel
+          </button>
+        </div>
+
+        <p id="message" role="status" aria-live="polite"></p>
+      </div>
+
+    </form>
+  </section>
+
+  <section class="panel">
+    <div class="toolbar">
+      <input
+        id="productSearch"
+        type="search"
+        placeholder="Search your products..."
+        aria-label="Search your product listings">
+
+      <select id="categoryFilter" aria-label="Filter by category">
+        <option value="">All categories</option>
+        <option>Electronics</option>
+        <option>Computers</option>
+        <option>Phones</option>
+        <option>Clothing</option>
+        <option>Shoes</option>
+        <option>Home and Kitchen</option>
+        <option>Groceries</option>
+        <option>Beauty and Health</option>
+        <option>Automotive</option>
+        <option>Books and Stationery</option>
+        <option>Sports and Outdoors</option>
+        <option>Other</option>
+      </select>
+    </div>
+
+    <div id="products" class="products"></div>
+  </section>
+
+  <p class="muted">
+    Note: Listings are stored in this browser on this computer.
+    This is a product catalogue, not yet a public marketplace or payment system.
+  </p>
+
+</main>
+
+<script>
+(() => {
+  "use strict";
+
+  const STORAGE_KEY = "findme_sell_products_v1";
+  const MAX_IMAGE_BYTES = 1024 * 1024;
+
+  const $ = id => document.getElementById(id);
+
+  const form = $("productForm");
+  const editor = $("editor");
+  const productsBox = $("products");
+  const message = $("message");
+
+  let products = [];
+  let editingId = null;
+  let selectedImageFile = null;
+  let previewObjectUrl = "";
+
+  function loadProducts() {
+    try {
+      const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+
+      products = Array.isArray(stored)
+        ? stored.filter(p =>
+            p &&
+            typeof p.id === "string" &&
+            typeof p.name === "string" &&
+            typeof p.price === "number"
+          )
+        : [];
+    } catch {
+      products = [];
+    }
+
+    render();
+  }
+
+  function persist() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+      return true;
+    } catch {
+      message.textContent =
+        "Could not save. Browser storage may be full. Try a smaller image.";
+      return false;
+    }
+  }
+
+  function showEditor(product = null) {
+    editingId = product ? product.id : null;
+
+    form.reset();
+
+    $("formTitle").textContent = product
+      ? "Edit Product"
+      : "Add a Product";
+
+    $("saveButton").textContent = product
+      ? "Save Changes"
+      : "Save Product";
+
+    $("productName").value = product?.name || "";
+    $("productPrice").value = product?.price ?? "";
+    $("productStock").value = product?.stock ?? 1;
+    $("productCategory").value = product?.category || "Other";
+    $("productCondition").value = product?.condition || "New";
+    $("productDescription").value = product?.description || "";
+    
+    $("productQuality").value =
+  product?.quality || "Not Assessed";
+
+$("productQualityDetails").value =
+  product?.qualityDetails || "";
+
+$("productSeller").value =
+  product?.seller || "";
+
+$("productLocation").value =
+  product?.location || "";
+
+$("productBuyUrl").value =
+  product?.buyUrl || "";
+
+    selectedImageFile = null;
+    $("productImage").value = "";
+    $("productCameraImage").value = "";
+    $("removeProductImage").checked = false;
+
+    if (previewObjectUrl) {
+      URL.revokeObjectURL(previewObjectUrl);
+      previewObjectUrl = "";
+    }
+
+    const currentImage = $("currentProductImage");
+
+    if (product?.image) {
+      currentImage.src = product.image;
+      currentImage.hidden = false;
+    } else {
+      currentImage.removeAttribute("src");
+      currentImage.hidden = true;
+    }
+
+    message.textContent = "";
+    editor.style.display = "block";
+    editor.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    $("productName").focus();
+  }
+
+  function hideEditor() {
+    editor.style.display = "none";
+    form.reset();
+    editingId = null;
+    message.textContent = "";
+  }
+
+  function addText(parent, tag, value, className = "") {
+    const element = document.createElement(tag);
+
+    // textContent prevents product details from being interpreted as HTML.
+    element.textContent = value;
+
+    if (className) element.className = className;
+
+    parent.appendChild(element);
+
+    return element;
+  }
+
+  function render() {
+    productsBox.replaceChildren();
+
+    $("summary").textContent =
+      products.length + (products.length === 1
+        ? " product listed"
+        : " products listed");
+
+    const query = $("productSearch").value.trim().toLowerCase();
+    const category = $("categoryFilter").value;
+
+    const filtered = products.filter(product => {
+      const matchesQuery = [
+        product.name,
+        product.description,
+        product.category,
+        product.condition
+      ].join(" ").toLowerCase().includes(query);
+
+      return matchesQuery &&
+        (!category || product.category === category);
+    });
+
+    if (filtered.length === 0) {
+      addText(
+        productsBox,
+        "p",
+        products.length
+          ? "No products match your search."
+          : "Your store is empty. Select “Add Product to Sell” to create your first listing.",
+        "empty"
+      );
+
+      return;
+    }
+
+    filtered.forEach(product => {
+      const card = document.createElement("article");
+      card.className = "product";
+
+      if (product.image) {
+        card.classList.add("has-image");
+        const img = document.createElement("img");
+        img.src = product.image;
+        img.alt = product.name;
+        img.loading = "lazy";
+        card.appendChild(img);
+      }
+
+      const info = document.createElement("div");
+      info.className = "product-info";
+
+      addText(info, "span", product.category, "badge");
+      addText(info, "h3", product.name);
+      addText(info, "p", product.description);
+      addText(
+  info,
+  "p",
+  "Physical Quality: " + (product.quality || "Not assessed")
+);
+
+if (product.qualityDetails) {
+  addText(info, "p", product.qualityDetails);
+}
+
+if (product.seller) {
+  addText(info, "p", "Seller: " + product.seller);
+}
+
+if (product.location) {
+  addText(info, "p", "Available at: " + product.location);
+}
+
+if (product.buyUrl) {
+  try {
+    const url = new URL(product.buyUrl);
+
+    if (["http:", "https:"].includes(url.protocol)) {
+      const link = document.createElement("a");
+      link.href = url.href;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.textContent = "🛒 View or Buy Product";
+      info.appendChild(link);
+    }
+  } catch {
+    // Ignore invalid links in previously saved records.
+  }
+}
+
+      addText(
+        info,
+        "p",
+        new Intl.NumberFormat("en-ZA", {
+          style: "currency",
+          currency: "ZAR"
+        }).format(product.price),
+        "price"
+      );
+
+      addText(
+        info,
+        "p",
+        "Condition: " + product.condition
+      );
+
+      const stockCount = Number(product.stock);
+      const stockKnown =
+        product.stock !== undefined &&
+        product.stock !== null &&
+        Number.isFinite(stockCount) &&
+        stockCount >= 0;
+
+      const stockState = !stockKnown
+        ? "unknown"
+        : stockCount === 0
+          ? "out"
+          : stockCount <= 5
+            ? "low"
+            : "in";
+
+      const stockLabel = !stockKnown
+        ? "⚪ Stock unknown"
+        : stockCount === 0
+          ? "🔴 Out of Stock"
+          : stockCount <= 5
+            ? "🟠 Low Stock"
+            : "🟢 In Stock";
+
+      addText(info, "span", stockLabel, "stock-badge stock-" + stockState);
+      addText(
+        info,
+        "p",
+        stockKnown ? "Quantity available: " + stockCount : "Quantity not recorded"
+      );
+
+      const actions = document.createElement("div");
+      actions.className = "actions";
+
+      const stockToggle = document.createElement("button");
+      stockToggle.type = "button";
+      stockToggle.className = "stock-action";
+
+      stockToggle.textContent =
+        Number(product.stock) === 0
+          ? "📦 Restock (set quantity to 1)"
+          : "🔴 Mark Out of Stock";
+
+      stockToggle.addEventListener("click", () => {
+        const previous = products;
+
+        products = products.map(p =>
+          p.id === product.id
+            ? {
+                ...p,
+                stock: Number(p.stock) === 0 ? 1 : 0,
+                updatedAt: new Date().toISOString()
+              }
+            : p
+        );
+
+        if (persist()) {
+          render();
+        } else {
+          products = previous;
+        }
+      });
+
+      const edit = document.createElement("button");
+      edit.type = "button";
+      edit.textContent = "✏️ Edit";
+      edit.addEventListener("click", () => showEditor(product));
+
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "danger";
+      remove.textContent = "🗑️ Delete";
+
+      remove.addEventListener("click", () => {
+        if (!confirm("Delete " + product.name + "?")) return;
+
+        const previous = products;
+        products = products.filter(p => p.id !== product.id);
+
+        if (persist()) {
+          render();
+        } else {
+          products = previous;
+        }
+      });
+
+      actions.append(stockToggle, edit, remove);
+      info.appendChild(actions);
+      card.appendChild(info);
+      productsBox.appendChild(card);
+    });
+  }
+
+  $("openEditor").addEventListener("click", () => showEditor());
+  $("cancelButton").addEventListener("click", hideEditor);
+
+  $("productSearch").addEventListener("input", render);
+  $("categoryFilter").addEventListener("change", render);
+
+  function handleProductPicture(file) {
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      message.textContent = "Please choose a valid image file.";
+      return;
+    }
+
+    if (file.size > MAX_IMAGE_BYTES) {
+      message.textContent = "Image must be 1 MB or smaller.";
+      return;
+    }
+
+    selectedImageFile = file;
+    $("removeProductImage").checked = false;
+
+    if (previewObjectUrl) {
+      URL.revokeObjectURL(previewObjectUrl);
+    }
+
+    previewObjectUrl = URL.createObjectURL(file);
+
+    const preview = $("currentProductImage");
+    preview.src = previewObjectUrl;
+    preview.hidden = false;
+
+    message.textContent =
+      "New picture selected. Save Changes to update the product.";
+  }
+
+  $("productImage").addEventListener("change", () => {
+    const file = $("productImage").files[0];
+    if (file) handleProductPicture(file);
+  });
+
+  $("productCameraImage").addEventListener("change", () => {
+    const file = $("productCameraImage").files[0];
+    if (file) handleProductPicture(file);
+  });
+
+  $("takeProductPicture").addEventListener("click", () => {
+    $("productCameraImage").click();
+  });
+
+  $("removeProductImage").addEventListener("change", event => {
+    if (event.target.checked) {
+      selectedImageFile = null;
+
+      $("productImage").value = "";
+      $("productCameraImage").value = "";
+
+      $("currentProductImage").removeAttribute("src");
+      $("currentProductImage").hidden = true;
+
+      if (previewObjectUrl) {
+        URL.revokeObjectURL(previewObjectUrl);
+        previewObjectUrl = "";
+      }
+
+      message.textContent =
+        "Picture will be removed when you save your changes.";
+    } else {
+      const product = products.find(p => p.id === editingId);
+
+      if (product?.image) {
+        $("currentProductImage").src = product.image;
+        $("currentProductImage").hidden = false;
+      }
+
+      message.textContent = "";
+    }
+  });
+
+  form.addEventListener("submit", async event => {
+    event.preventDefault();
+
+    const name = $("productName").value.trim();
+    const description = $("productDescription").value.trim();
+    const price = Number($("productPrice").value);
+    const stock = Number($("productStock").value);
+    const buyUrl = $("productBuyUrl").value.trim();
+
+if (buyUrl) {
+  try {
+    const parsedUrl = new URL(buyUrl);
+
+    if (!["http:", "https:"].includes(parsedUrl.protocol)) {
+      throw new Error("Invalid protocol");
+    }
+  } catch {
+    message.textContent =
+      "Please enter a valid purchase link beginning with https:// or http://.";
+    return;
+  }
+}
+
+
+    if (!name ||
+        !Number.isFinite(price) || price <= 0 ||
+        !Number.isFinite(stock) || stock < 0 ||
+        !Number.isInteger(stock)) {
+      message.textContent = "Please check all required fields.";
+      return;
+    }
+
+    const imageFile =
+      selectedImageFile ||
+      $("productImage").files[0] ||
+      $("productCameraImage").files[0];
+
+    let image = $("removeProductImage").checked
+      ? ""
+      : (products.find(p => p.id === editingId)?.image || "");
+
+    if (imageFile) {
+      if (imageFile.size > MAX_IMAGE_BYTES) {
+        message.textContent = "Image must be 1 MB or smaller.";
+        return;
+      }
+
+      if (!imageFile.type.startsWith("image/")) {
+        message.textContent = "Please choose an image file.";
+        return;
+      }
+
+      try {
+        image = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = reject;
+          reader.readAsDataURL(imageFile);
+        });
+      } catch {
+        message.textContent = "Could not read the image.";
+        return;
+      }
+    }
+
+    const product = {
+      id: editingId || (
+        crypto.randomUUID
+          ? crypto.randomUUID()
+          : String(Date.now()) + Math.random().toString(16).slice(2)
+      ),
+      quality: $("productQuality").value,
+qualityDetails: $("productQualityDetails").value.trim(),
+seller: $("productSeller").value.trim(),
+location: $("productLocation").value.trim(),
+buyUrl: $("productBuyUrl").value.trim(),
+
+      name,
+      description,
+      price,
+      stock,
+      category: $("productCategory").value,
+      condition: $("productCondition").value,
+      image,
+      updatedAt: new Date().toISOString()
+    };
+
+    const previous = products;
+
+    if (editingId) {
+      products = products.map(p =>
+        p.id === editingId ? product : p
+      );
+    } else {
+      products.unshift(product);
+    }
+
+    if (!persist()) {
+      products = previous;
+      return;
+    }
+
+    render();
+    hideEditor();
+  });
+
+  loadProducts();
+})();
+</script>
+
+
+<div style="max-width:1100px;margin:16px auto;padding:0 16px;text-align:center">
+  
+</div>
+
+
+<div style="margin:16px auto;padding:0 16px;text-align:center">
+  <a href="/secureme.html"
+     style="display:inline-block;padding:12px 18px;border-radius:10px;
+            background:#fcd34d;color:#0b1020;text-decoration:none;
+            font-weight:bold">
+    🛡️ SecureMe — Scam Protection
+  </a>
+</div>
+
+
+<div style="margin:16px auto;padding:0 16px;text-align:center">
+  <a href="/buyme.html"
+     style="display:inline-block;padding:13px 20px;border-radius:10px;
+            background:#86efac;color:#0b1020;text-decoration:none;
+            font-weight:bold">
+    🛒 BuyMe — Browse Products
+  </a>
+</div>
+
+</body>
+</html>

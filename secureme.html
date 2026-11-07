@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0b1020">
+<title>findMe | SecureMe</title>
+
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #0b1020;
+  --panel: #141c30;
+  --border: #293650;
+  --text: #f1f5f9;
+  --muted: #a0aec0;
+  --blue: #60a5fa;
+  --green: #86efac;
+  --red: #fca5a5;
+  --yellow: #fcd34d;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, sans-serif;
+  line-height: 1.6;
+}
+
+header {
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  padding: 18px;
+}
+
+nav, main {
+  max-width: 950px;
+  margin: auto;
+}
+
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+main { padding: 20px; }
+
+h1, h2 { color: var(--blue); }
+
+a { color: var(--blue); }
+
+nav a { margin-right: 12px; }
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  padding: 22px;
+  margin-bottom: 20px;
+}
+
+.warning {
+  border-left: 4px solid var(--red);
+}
+
+.notice {
+  border-left: 4px solid var(--yellow);
+}
+
+label {
+  display: block;
+  margin: 12px 0 5px;
+}
+
+input, select, textarea, button {
+  width: 100%;
+  padding: 12px;
+  border-radius: 9px;
+  font: inherit;
+}
+
+input, select, textarea {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+button {
+  margin-top: 15px;
+  background: var(--blue);
+  color: #0b1020;
+  border: 0;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button.secondary {
+  background: var(--border);
+  color: var(--text);
+}
+
+.muted { color: var(--muted); }
+
+.warning h2 { color: var(--red); }
+
+.notice h2 { color: var(--yellow); }
+
+#reportOutput {
+  display: none;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 15px;
+  margin-top: 18px;
+}
+
+ul { padding-left: 22px; }
+
+footer {
+  text-align: center;
+  color: var(--muted);
+  padding: 20px;
+}
+
+@media (max-width: 600px) {
+  main { padding: 12px; }
+  .panel { padding: 16px; }
+}
+</style>
+</head>
+
+<body>
+<header>
+  <nav>
+    <h1>🛡️ SecureMe</h1>
+    <div>
+      <a href="/">Home</a>
+      <a href="/sell.html">Sell Products</a>
+      
+    </div>
+  </nav>
+</header>
+
+<main>
+  <section class="panel">
+    <h2>Protect Your findMe Account</h2>
+    <p>
+      SecureMe helps buyers and sellers recognise scams, report suspicious
+      activity and protect their personal information.
+    </p>
+    <p class="muted">
+      Security advice and reporting tools are provided here. This page does
+      not certify that a seller, product or payment is safe.
+    </p>
+  </section>
+
+  <section class="panel warning">
+    <h2>🚨 Never share these details</h2>
+    <ul>
+      <li>Banking passwords or account login credentials.</li>
+      <li>Card PINs, CVVs or complete payment-card numbers.</li>
+      <li>One-time passwords (OTPs) or banking approval codes.</li>
+      <li>Your findMe password with a buyer, seller or support agent.</li>
+      <li>Recovery codes or private authentication tokens.</li>
+    </ul>
+    <p>
+      A legitimate findMe support process should never ask you to disclose
+      your banking password, PIN or OTP.
+    </p>
+  </section>
+
+  <section class="panel">
+    <h2>🔎 Scam Warning Signs</h2>
+    <ul>
+      <li>A seller demands payment urgently or pressures you to act immediately.</li>
+      <li>Someone sends a suspicious payment-confirmation screenshot.</li>
+      <li>A buyer or seller asks you to open an unexpected payment link.</li>
+      <li>A deal seems unusually cheap and the seller refuses reasonable checks.</li>
+      <li>Someone requests an OTP, banking password or remote access to your device.</li>
+      <li>A seller asks you to pay outside the agreed, trusted payment process.</li>
+    </ul>
+    <p class="muted">
+      These signs warrant caution, but their absence does not guarantee that
+      a transaction is legitimate.
+    </p>
+  </section>
+
+  <section class="panel">
+    <h2>📝 Report a Suspicious Listing or Scam</h2>
+
+    <p class="muted">
+      Describe what happened without including passwords, banking information,
+      identity-document numbers or other unnecessary personal information.
+    </p>
+
+    <form id="reportForm">
+      <label for="reportType">What would you like to report?</label>
+      <select id="reportType" required>
+        <option value="Suspicious seller">Suspicious seller</option>
+        <option value="Suspicious buyer">Suspicious buyer</option>
+        <option value="Fake product listing">Fake product listing</option>
+        <option value="Payment scam">Payment scam</option>
+        <option value="Phishing link">Phishing link</option>
+        <option value="Account security concern">Account security concern</option>
+        <option value="Other suspicious activity">Other suspicious activity</option>
+      </select>
+
+      <label for="productName">Product name or listing reference (optional)</label>
+      <input id="productName" maxlength="150"
+             placeholder="Product name or public listing ID">
+
+      <label for="suspectLink">Suspicious website or listing URL (optional)</label>
+      <input id="suspectLink" type="url" maxlength="1000"
+             placeholder="https://example.com/listing">
+
+      <label for="reportDetails">What happened?</label>
+      <textarea id="reportDetails" maxlength="2000" required
+        placeholder="Describe the suspicious behaviour. Do not enter passwords, PINs, card details or OTPs."></textarea>
+
+      <label for="reportDate">When did it happen? (optional)</label>
+      <input id="reportDate" type="date">
+
+      <button type="submit">Prepare Scam Report</button>
+    </form>
+
+    <div id="reportOutput" aria-live="polite"></div>
+
+    <button id="copyReport" class="secondary" type="button"
+            style="display:none">
+      Copy Report
+    </button>
+
+    <button id="downloadReport" class="secondary" type="button"
+            style="display:none">
+      Download Report
+    </button>
+
+    <p id="reportStatus" class="muted" role="status" aria-live="polite"></p>
+
+    <p class="muted">
+      Privacy notice: this demonstration prepares a report locally in your
+      browser. It does not send the report to findMe or save it in a server
+      database. You must submit it through an appropriate reporting channel.
+    </p>
+  </section>
+
+  <section class="panel notice">
+    <h2>💳 Payment Safety</h2>
+    <ul>
+      <li>Verify that a payment has actually arrived in your account.</li>
+      <li>Do not rely on screenshots, emails or SMS messages as proof of payment.</li>
+      <li>Use a reputable payment provider for online transactions.</li>
+      <li>Check the website address before entering payment information.</li>
+      <li>Never ask customers to send banking passwords or OTPs to your store.</li>
+    </ul>
+    <p>
+      findMe does not process payments through this page.
+    </p>
+  </section>
+
+  <section class="panel">
+    <h2>🔐 If You Think Your Account Has Been Compromised</h2>
+    <ol>
+      <li>Use a trusted device to change the affected account password.</li>
+      <li>Contact your bank immediately if you suspect payment fraud.</li>
+      <li>Contact your email provider if your email account may be compromised.</li>
+      <li>Preserve relevant messages and transaction references.</li>
+      <li>Report the incident to the appropriate service or authority.</li>
+    </ol>
+  </section>
+</main>
+
+<footer>
+  findMe SecureMe · Security awareness and scam reporting
+</footer>
+
+<script>
+(() => {
+  "use strict";
+
+  const $ = id => document.getElementById(id);
+  let preparedReport = "";
+
+  $("reportForm").addEventListener("submit", event => {
+    event.preventDefault();
+
+    const type = $("reportType").value;
+    const product = $("productName").value.trim();
+    const link = $("suspectLink").value.trim();
+    const details = $("reportDetails").value.trim();
+    const date = $("reportDate").value;
+
+    if (!details) {
+      $("reportStatus").textContent =
+        "Please describe the suspicious activity.";
+      return;
+    }
+
+    if (link) {
+      try {
+        const url = new URL(link);
+
+        if (!["http:", "https:"].includes(url.protocol)) {
+          throw new Error("Unsupported URL scheme");
+        }
+      } catch {
+        $("reportStatus").textContent =
+          "Enter a valid HTTP or HTTPS link, or leave the link field blank.";
+        return;
+      }
+    }
+
+    preparedReport = [
+      "FINDME SECUREME — SCAM REPORT",
+      "Report type: " + type,
+      "Date of incident: " + (date || "Not provided"),
+      "Product or listing: " + (product || "Not provided"),
+      "Suspicious URL: " + (link || "Not provided"),
+      "",
+      "Incident description:",
+      details,
+      "",
+      "This report was prepared locally by the reporting user."
+    ].join("\n");
+
+    $("reportOutput").textContent = preparedReport;
+    $("reportOutput").style.display = "block";
+    $("copyReport").style.display = "block";
+    $("downloadReport").style.display = "block";
+
+    $("reportStatus").textContent =
+      "Report prepared. Review it, then copy or download it. " +
+      "It has not been sent to findMe.";
+  });
+
+  $("copyReport").addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(preparedReport);
+      $("reportStatus").textContent = "Report copied to clipboard.";
+    } catch {
+      $("reportStatus").textContent =
+        "Clipboard access was unavailable. Select and copy the report text manually.";
+    }
+  });
+
+  $("downloadReport").addEventListener("click", () => {
+    const blob = new Blob([preparedReport], {
+      type: "text/plain;charset=utf-8"
+    });
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+
+    a.href = url;
+    a.download = "findme-scam-report.txt";
+    a.click();
+
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    $("reportStatus").textContent = "Report downloaded to your device.";
+  });
+})();
+</script>
+
+<div style="margin:16px auto;padding:0 16px;text-align:center">
+  <a href="/buyme.html"
+     style="display:inline-block;padding:13px 20px;border-radius:10px;
+            background:#86efac;color:#0b1020;text-decoration:none;
+            font-weight:bold">
+    🛒 BuyMe — Browse Products
+  </a>
+</div>
+
+</body>
+</html>
